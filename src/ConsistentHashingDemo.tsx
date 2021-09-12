@@ -1,12 +1,19 @@
 import * as React from "react";
 import CircularHashSpace from "./CircularHashSpace";
-import ConsistentHashing, { hash } from "./ConsistentHashing";
+import ConsistentHashing, { ConsistentHashingInspect, hash } from "./ConsistentHashing";
 import { v4 as uuid } from "uuid";
 
 export default function ConsistentHashingDemo() {
   const csRef = React.useRef(new ConsistentHashing());
   const cs = csRef.current;
-  const [csState, setCsState] = React.useState(cs.inspect());
+  const [csState, setCsState] = React.useState<ConsistentHashingInspect>({
+    servers: [],
+    serverHashes: [],
+    keys: [],
+    keyHashes: [],
+    serverKeyMap: {},
+    sortedServerKeyCounts: [],
+  });
   const [highlightHash, setHighlightHash] = React.useState<number | undefined>();
   const isEmpty = csState.keys.length === 0 && csState.servers.length === 0;
 
@@ -58,21 +65,50 @@ export default function ConsistentHashingDemo() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", justifyContent: "flex-start" }}>
-      <div>
-        <CircularHashSpace
-          serverHashes={csState.serverHashes}
-          keyHashes={csState.keyHashes}
-          highlightHash={highlightHash}
-        />
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "flex-start",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ position: "relative" }}>
+        <div style={{ position: "absolute" }}>
+          <CircularHashSpace
+            serverHashes={csState.serverHashes}
+            keyHashes={csState.keyHashes}
+            highlightHash={highlightHash}
+          />
+        </div>
+        <div
+          style={{
+            width: 400,
+            height: 400,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Stats serverKeyCounts={csState.sortedServerKeyCounts} />
+        </div>
       </div>
       <DivSpacer />
       <div style={{ flex: 1 }}>
         <button onClick={onAddServer(1)}>add server</button>
         <SpanSpacer />
         <button onClick={onAddServer(10)}>add 10 servers</button>
-        <br />
-        {!!csState.servers.length && <em>click a server to remove it</em>}
+        <DivSpacer />
+        {!!csState.servers.length && (
+          <div>
+            <span>
+              <strong style={{ fontSize: "1.5rem" }}>{csState.servers.length}</strong>{" "}
+              servers
+            </span>
+            <br />
+            <em style={{ color: "gray" }}>click a server to remove it</em>
+          </div>
+        )}
         <DivSpacer />
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
@@ -94,8 +130,16 @@ export default function ConsistentHashingDemo() {
         <button onClick={onReset} disabled={isEmpty}>
           reset
         </button>
-        <br />
-        {!!csState.keys.length && <em>click a key to remove it</em>}
+        <DivSpacer />
+        {!!csState.keys.length && (
+          <div>
+            <span>
+              <strong style={{ fontSize: "1.5rem" }}>{csState.keys.length}</strong> keys
+            </span>
+            <br />
+            <em style={{ color: "gray" }}>click a key to remove it</em>
+          </div>
+        )}
         <DivSpacer />
         <div
           style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
@@ -120,6 +164,25 @@ function getNextKeyName() {
   return "k-" + uuid().slice(-6);
 }
 
+function Stats(props: { serverKeyCounts: number[] }) {
+  const counts = props.serverKeyCounts;
+  return (
+    <div style={{ textAlign: "center" }}>
+      {counts.length > 0 && (
+        <>
+          keys / server
+          <br />
+          <strong>{counts[0]}</strong> min,&nbsp;
+          <strong>{counts[counts.length - 1]}</strong> max,
+          <br />
+          <strong>{median(counts)}</strong> median,&nbsp;
+          <strong>{alphaAvg(counts)}</strong> &alpha;-avg&nbsp;
+        </>
+      )}
+    </div>
+  );
+}
+
 function Item(props: { name: string }) {
   return (
     <div style={{ fontFamily: "monospace", padding: "0.25rem" }}>
@@ -137,25 +200,33 @@ function SpanSpacer() {
   return <span style={{ marginLeft: "0.5rem" }} />;
 }
 
-// function TextInput(props: { label: string; onValue: (input: string) => void }) {
-//   const [value, setValue] = React.useState("");
-//   const hasValue = value !== "";
+function median(values: number[]) {
+  const sorted = [...values].sort();
+  const l = sorted.length;
+  if (l === 0) {
+    return undefined;
+  }
 
-//   const onChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-//     setValue(e.target.value || "");
-//   }, []);
+  if (l % 2 === 1) {
+    // l=1: 0
+    // l=3: 0,1,2
+    // l=5: 0,1,2,3,4
+    const mid = (l - 1) / 2;
+    return sorted[mid];
+  }
 
-//   const onClick = React.useCallback(() => {
-//     props.onValue(value);
-//     setValue("");
-//   }, []);
+  // l=2: 0,1
+  // l=4: 0,1,2,3
+  // l=6: 0,1,2,3,4,5
+  const m1 = l / 2;
+  const m2 = m1 - 1;
+  return ((sorted[m1] + sorted[m2]) / 2).toFixed(1);
+}
 
-//   return (
-//     <span>
-//       <input type="text" size={10} onChange={onChange} value={value} />{" "}
-//       <button onClick={onClick} disabled={!hasValue}>
-//         {props.label}
-//       </button>
-//     </span>
-//   );
-// }
+function alphaAvg(values: number[]) {
+  const alpha = 0.1; // we ignore both 10% of values from start *and* end (20% in sum)
+  const sorted = [...values].sort();
+  const k = Math.floor(alpha * sorted.length);
+  const trimmed = sorted.slice(k, -k);
+  return (trimmed.reduce((sum, i) => sum + i, 0) / trimmed.length).toFixed(1);
+}

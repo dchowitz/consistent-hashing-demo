@@ -3,6 +3,16 @@ import hash from "./xmur3";
 
 export { hash };
 
+export type ConsistentHashingInspect = {
+  servers: string[];
+  serverHashes: number[];
+  keys: string[];
+  keyHashes: number[];
+  serverKeyMap: ServerKeyMap;
+  sortedServerKeyCounts: number[];
+};
+export type ServerKeyMap = { [server: string]: string[] };
+
 export default class ConsistentHashing {
   #servers = new BinarySearchTree<string>();
   #keys = new Set<string>();
@@ -29,9 +39,6 @@ export default class ConsistentHashing {
       // either there are no servers or
       // there is no server-hash greater than key-hash
       // -> search again from beginning of hash space [0, END]
-      // we consider the hash space a ring
-      // possible optimization: track the max-server-hash in order
-      // to have always one invocation of findNearest...
       server = this.#servers.findNearestGreaterThan(0);
     }
     return server?.value;
@@ -39,13 +46,36 @@ export default class ConsistentHashing {
 
   inspect() {
     const serverNodes = this.#servers.toOrderedArray();
+    console.log("serverNodes", serverNodes);
     const keys = [...this.#keys.values()];
+    console.log("keys", keys);
+
+    const serverKeyMap = serverNodes.reduce((map, s) => {
+      map[s.value] = [];
+      return map;
+    }, {} as ServerKeyMap);
+
+    if (serverNodes.length > 0) {
+      this.#keys.forEach((key) => {
+        const lookup = this.lookupServer(key);
+        if (lookup !== undefined) {
+          serverKeyMap[lookup].push(key);
+        }
+      });
+    }
+
+    console.log("serverKeyMap", serverKeyMap);
+
+    const serverKeyCounts = Object.values(serverKeyMap).map((keys) => keys.length);
+    console.log("serverKeyCounts", serverKeyCounts);
 
     return {
       servers: serverNodes.map((n) => n.value).sort(),
       serverHashes: serverNodes.map((n) => n.key),
       keys,
       keyHashes: keys.map(hash),
+      serverKeyMap,
+      sortedServerKeyCounts: serverKeyCounts.sort(),
     };
   }
 }

@@ -15,31 +15,23 @@ export default function CircularHashSpace(props: {
   };
 
   return (
-    <div>
-      <svg version="1.1" width={width} height={height} xmlns="http://www.w3.org/2000/svg">
-        <rect
-          width="100%"
-          height="100%"
-          stroke="gray"
-          strokeWidth="2"
-          fill="transparent"
-        />
-        <circle
-          cx={circle.x}
-          cy={circle.y}
-          r={circle.radius}
-          stroke="lightblue"
-          strokeWidth="2"
-          fill="transparent"
-        />
-        {keyHashes.map((h) => (
-          <KeyNode key={h} circle={circle} hash={h} highlight={highlightHash === h} />
-        ))}
-        {serverHashes.map((h) => (
-          <ServerNode key={h} circle={circle} hash={h} highlight={highlightHash === h} />
-        ))}
-      </svg>
-    </div>
+    <svg version="1.1" width={width} height={height} xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" stroke="gray" strokeWidth="2" fill="transparent" />
+      <circle
+        cx={circle.x}
+        cy={circle.y}
+        r={circle.radius}
+        stroke="lightblue"
+        strokeWidth="2"
+        fill="transparent"
+      />
+      {keyHashes.map((h) => (
+        <KeyNode key={h} circle={circle} hash={h} highlight={highlightHash === h} />
+      ))}
+      {serverHashes.map((h) => (
+        <ServerNode key={h} circle={circle} hash={h} highlight={highlightHash === h} />
+      ))}
+    </svg>
   );
 }
 
