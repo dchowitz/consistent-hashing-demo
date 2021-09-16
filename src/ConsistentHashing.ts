@@ -46,9 +46,7 @@ export default class ConsistentHashing {
 
   inspect() {
     const serverNodes = this.#servers.toOrderedArray();
-    console.log("serverNodes", serverNodes);
     const keys = [...this.#keys.values()];
-    console.log("keys", keys);
 
     const serverKeyMap = serverNodes.reduce((map, s) => {
       map[s.value] = [];
@@ -64,16 +62,13 @@ export default class ConsistentHashing {
       });
     }
 
-    console.log("serverKeyMap", serverKeyMap);
-
     const serverKeyCounts = Object.values(serverKeyMap).map((keys) => keys.length);
-    console.log("serverKeyCounts", serverKeyCounts);
 
     return {
-      servers: serverNodes.map((n) => n.value).sort(),
+      servers: serverNodes.map((n) => n.value),
       serverHashes: serverNodes.map((n) => n.key),
       keys,
-      keyHashes: keys.map(hash),
+      keyHashes: keys.map(hash).sort(),
       serverKeyMap,
       sortedServerKeyCounts: serverKeyCounts.sort(),
     };

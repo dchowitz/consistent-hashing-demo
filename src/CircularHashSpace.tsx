@@ -3,9 +3,10 @@ import * as React from "react";
 export default function CircularHashSpace(props: {
   serverHashes: number[];
   keyHashes: number[];
-  highlightHash?: number;
+  highlightServerHash?: number;
+  highlightKeyHash?: number;
 }) {
-  const { serverHashes, keyHashes, highlightHash } = props;
+  const { serverHashes, keyHashes, highlightServerHash, highlightKeyHash } = props;
   const width = 400;
   const height = 400;
   const circle = {
@@ -25,11 +26,25 @@ export default function CircularHashSpace(props: {
         strokeWidth="2"
         fill="transparent"
       />
+
+      {highlightServerHash !== undefined && (
+        <HighlightHashRange
+          circle={circle}
+          hash={highlightServerHash}
+          sortedHashes={serverHashes}
+        />
+      )}
+
       {keyHashes.map((h) => (
-        <KeyNode key={h} circle={circle} hash={h} highlight={highlightHash === h} />
+        <KeyNode key={h} circle={circle} hash={h} highlight={highlightKeyHash === h} />
       ))}
       {serverHashes.map((h) => (
-        <ServerNode key={h} circle={circle} hash={h} highlight={highlightHash === h} />
+        <ServerNode
+          key={h}
+          circle={circle}
+          hash={h}
+          highlight={highlightServerHash === h}
+        />
       ))}
     </svg>
   );
@@ -65,8 +80,76 @@ function ServerNode(props: { circle: Circle; hash: number; highlight: boolean })
   );
 }
 
+function HighlightHashRange(props: {
+  circle: Circle;
+  hash: number;
+  sortedHashes: number[];
+}) {
+  const { circle, hash, sortedHashes } = props;
+  if (sortedHashes.length === 0) return <></>;
+  if (sortedHashes.length === 1) {
+    return (
+      <circle
+        cx={circle.x}
+        cy={circle.y}
+        r={circle.radius}
+        stroke="lightblue"
+        strokeWidth={20}
+        fill="transparent"
+      />
+    );
+  }
+
+  const hashIdx = sortedHashes.findIndex((h) => h === hash);
+  if (hashIdx === -1) {
+    return <></>;
+  }
+
+  const startIdx = hashIdx - 1 < 0 ? sortedHashes.length - 1 : hashIdx - 1;
+  const startHash = sortedHashes[startIdx];
+  if (startHash === hash) {
+    return <></>;
+  }
+
+  return (
+    <Arc
+      circle={circle}
+      startAngle={getTheta(startHash)}
+      endAngle={getTheta(hash)}
+      stroke="lightblue"
+      strokeWidth={20}
+      fill="transparent"
+    />
+  );
+}
+
+function Arc(
+  props: {
+    circle: Circle;
+    startAngle: number;
+    endAngle: number;
+  } & React.SVGProps<SVGPathElement>
+) {
+  const { circle, startAngle, endAngle, ...others } = props;
+  const [startX, startY] = getCartesianPoint(circle, startAngle);
+  const [endX, endY] = getCartesianPoint(circle, endAngle);
+
+  let size = endAngle - startAngle;
+  size = size > 0 ? size : MATH_PI_DOUBLE + size;
+  const isLarge = size > Math.PI;
+
+  // prettier-ignore
+  const d = [
+    "M", startX, startY,
+    "A", circle.radius, circle.radius, 0, isLarge ? 1 : 0, 1, endX, endY
+  ].join(" ")
+
+  return <path d={d} {...others} />;
+}
+
 type Circle = { x: number; y: number; radius: number };
 const MATH_PI_HALF = Math.PI / 2;
+const MATH_PI_DOUBLE = Math.PI * 2;
 
 /**
  * Maps a hash in the range [0, 0xffffffff] to an

@@ -14,7 +14,10 @@ export default function ConsistentHashingDemo() {
     serverKeyMap: {},
     sortedServerKeyCounts: [],
   });
-  const [highlightHash, setHighlightHash] = React.useState<number | undefined>();
+  const [highlightServerHash, setHighlightServerHash] = React.useState<
+    number | undefined
+  >();
+  const [highlightKeyHash, setHighlightKeyHash] = React.useState<number | undefined>();
   const isEmpty = csState.keys.length === 0 && csState.servers.length === 0;
 
   const onAddServer = (count: number) => () => {
@@ -33,7 +36,7 @@ export default function ConsistentHashingDemo() {
 
   function onHoverServer(e: React.MouseEvent) {
     const server = (e.target as any).id;
-    setHighlightHash(hash(server));
+    setHighlightServerHash(hash(server));
   }
 
   const onAddKey = (count: number) => () => {
@@ -52,11 +55,12 @@ export default function ConsistentHashingDemo() {
 
   function onHoverKey(e: React.MouseEvent) {
     const key = (e.target as any).id;
-    setHighlightHash(hash(key));
+    setHighlightKeyHash(hash(key));
   }
 
   function onUnhover() {
-    setHighlightHash(undefined);
+    setHighlightServerHash(undefined);
+    setHighlightKeyHash(undefined);
   }
 
   function onReset() {
@@ -78,7 +82,8 @@ export default function ConsistentHashingDemo() {
           <CircularHashSpace
             serverHashes={csState.serverHashes}
             keyHashes={csState.keyHashes}
-            highlightHash={highlightHash}
+            highlightServerHash={highlightServerHash}
+            highlightKeyHash={highlightKeyHash}
           />
         </div>
         <div

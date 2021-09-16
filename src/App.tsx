@@ -18,8 +18,6 @@ export default function App() {
         <li>on add/remove server: show keys reassigned (names, number, percent)</li>
         <li>provide toggle for having virtual server nodes (or not)</li>
         <li>visualize start/end of the hash space</li>
-        <li>hover server: highlight hash space</li>
-        <li>hover server: highlight belonging keys</li>
         <li>hover server: show stats (#keys, hash range)</li>
         <li>hover key: visualize arrow to mapped server</li>
       </ul>
@@ -32,7 +30,8 @@ export default function App() {
         <br />✅ remove key
         <br />✅ reset, remove all servers and keys
         <br />✅ populate a big set of random keys
-        <br />✅ on hovering a key the corresponding position on the hash ring highlighted
+        <br />✅ on hovering a key the highlight the corresponding hash ring position
+        <br />✅ on hovering a server highlight the belonging hash space
         <br />✅ show stats: #servers, #keys, average keys/server
       </p>
     </div>
