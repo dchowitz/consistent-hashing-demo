@@ -18,7 +18,6 @@ export default function App() {
         <li>on add/remove server: show keys reassigned (names, number, percent)</li>
         <li>provide toggle for having virtual server nodes (or not)</li>
         <li>visualize start/end of the hash space</li>
-        <li>hover server: show stats (#keys, hash range)</li>
         <li>hover key: visualize arrow to mapped server</li>
       </ul>
       <h2>Done</h2>

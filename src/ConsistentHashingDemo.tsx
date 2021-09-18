@@ -237,7 +237,7 @@ function ServerStats(props: { server: string; serverKeyMap: ServerKeyMap }) {
       </strong>
       <br />
       <br />
-      <strong>{keys.length}</strong> keys
+      <strong>{keys.length}</strong> key{keys.length !== 1 && "s"}
     </div>
   );
 }
@@ -286,7 +286,7 @@ function alphaAvg(values: number[]) {
   const alpha = 0.1; // we ignore both 10% of values from start *and* end (20% in sum)
   const sorted = [...values].sort();
   const k = Math.floor(alpha * sorted.length);
-  const trimmed = sorted.slice(k, -k);
+  const trimmed = k > 0 ? sorted.slice(k, -k) : sorted;
   return (trimmed.reduce((sum, i) => sum + i, 0) / trimmed.length).toFixed(1);
 }
 
