@@ -36,8 +36,11 @@ export default function CircularHashSpace(props: {
       )}
 
       {keyHashes.map((h) => (
-        <KeyNode key={h} circle={circle} hash={h} highlight={highlightKeyHash === h} />
+        <KeyNode key={h} circle={circle} hash={h} />
       ))}
+      {highlightKeyHash !== undefined && (
+        <KeyNode hash={highlightKeyHash} circle={circle} highlight />
+      )}
       {serverHashes.map((h) => (
         <ServerNode
           key={h}
@@ -50,11 +53,14 @@ export default function CircularHashSpace(props: {
   );
 }
 
-function KeyNode(props: { circle: Circle; hash: number; highlight: boolean }) {
-  const { circle, hash, highlight } = props;
+function KeyNode(props: { circle: Circle; hash: number; highlight?: boolean }) {
+  const { circle, hash } = props;
+  const highlight = !!props.highlight;
   const theta = getTheta(hash);
   const [x, y] = getCartesianPoint(circle, theta);
-  return <circle cx={x} cy={y} r={highlight ? 8 : 4} fill="green" />;
+  return (
+    <circle cx={x} cy={y} r={highlight ? 8 : 4} fill={highlight ? "orange" : "green"} />
+  );
 }
 
 function ServerNode(props: { circle: Circle; hash: number; highlight: boolean }) {

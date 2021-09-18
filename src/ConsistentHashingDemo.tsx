@@ -61,6 +61,7 @@ export default function ConsistentHashingDemo() {
       cs.removeKey(key);
       setCsState(cs.inspect());
       setHighlightKeyHash(undefined);
+      setHighlightServer(undefined);
     }
   }
 
@@ -68,6 +69,7 @@ export default function ConsistentHashingDemo() {
     const key = (e.target as any).id;
     if (!!key && key !== "") {
       setHighlightKeyHash(hash(key));
+      setHighlightServer(cs.lookupServer(key));
     }
   }
 
@@ -188,6 +190,7 @@ function getNextKeyName() {
 
 function OverallStats(props: { serverKeyCounts: number[] }) {
   const counts = props.serverKeyCounts;
+  console.log("counts", counts);
   return (
     <div style={{ textAlign: "center" }}>
       {counts.length > 0 && (
@@ -260,7 +263,7 @@ function SpanSpacer() {
 }
 
 function median(values: number[]) {
-  const sorted = [...values].sort();
+  const sorted = [...values].sort((a, b) => a - b);
   const l = sorted.length;
   if (l === 0) {
     return undefined;
@@ -284,7 +287,7 @@ function median(values: number[]) {
 
 function alphaAvg(values: number[]) {
   const alpha = 0.1; // we ignore both 10% of values from start *and* end (20% in sum)
-  const sorted = [...values].sort();
+  const sorted = [...values].sort((a, b) => a - b);
   const k = Math.floor(alpha * sorted.length);
   const trimmed = k > 0 ? sorted.slice(k, -k) : sorted;
   return (trimmed.reduce((sum, i) => sum + i, 0) / trimmed.length).toFixed(1);

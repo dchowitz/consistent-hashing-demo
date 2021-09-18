@@ -68,9 +68,9 @@ export default class ConsistentHashing {
       servers: serverNodes.map((n) => n.value),
       serverHashes: serverNodes.map((n) => n.key),
       keys,
-      keyHashes: keys.map(hash).sort(),
+      keyHashes: keys.map(hash).sort((a, b) => a - b),
       serverKeyMap,
-      sortedServerKeyCounts: serverKeyCounts.sort(),
+      sortedServerKeyCounts: serverKeyCounts.sort((a, b) => a - b),
     };
   }
 }
