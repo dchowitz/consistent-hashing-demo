@@ -1,6 +1,10 @@
 import * as React from "react";
 import CircularHashSpace from "./CircularHashSpace";
-import ConsistentHashing, { ConsistentHashingInspect, hash } from "./ConsistentHashing";
+import ConsistentHashing, {
+  ConsistentHashingInspect,
+  hash,
+  ServerKeyMap,
+} from "./ConsistentHashing";
 import { v4 as uuid } from "uuid";
 
 export default function ConsistentHashingDemo() {
@@ -14,11 +18,10 @@ export default function ConsistentHashingDemo() {
     serverKeyMap: {},
     sortedServerKeyCounts: [],
   });
-  const [highlightServerHash, setHighlightServerHash] = React.useState<
-    number | undefined
-  >();
+  const [highlightServer, setHighlightServer] = React.useState<string | undefined>();
   const [highlightKeyHash, setHighlightKeyHash] = React.useState<number | undefined>();
   const isEmpty = csState.keys.length === 0 && csState.servers.length === 0;
+  const highlightServerHash = !!highlightServer ? hash(highlightServer) : undefined;
 
   const onAddServer = (count: number) => () => {
     for (let i = 0; i < count; i++) {
@@ -30,13 +33,18 @@ export default function ConsistentHashingDemo() {
 
   function onRemoveServer(e: React.MouseEvent) {
     const server = (e.target as any).id;
-    cs.removeServer(server);
-    setCsState(cs.inspect());
+    if (!!server && server !== "") {
+      cs.removeServer(server);
+      setCsState(cs.inspect());
+      setHighlightServer(undefined);
+    }
   }
 
   function onHoverServer(e: React.MouseEvent) {
     const server = (e.target as any).id;
-    setHighlightServerHash(hash(server));
+    if (!!server && server !== "") {
+      setHighlightServer(server);
+    }
   }
 
   const onAddKey = (count: number) => () => {
@@ -49,17 +57,22 @@ export default function ConsistentHashingDemo() {
 
   function onRemoveKey(e: React.MouseEvent) {
     const key = (e.target as any).id;
-    cs.removeKey(key);
-    setCsState(cs.inspect());
+    if (!!key && key !== "") {
+      cs.removeKey(key);
+      setCsState(cs.inspect());
+      setHighlightKeyHash(undefined);
+    }
   }
 
   function onHoverKey(e: React.MouseEvent) {
     const key = (e.target as any).id;
-    setHighlightKeyHash(hash(key));
+    if (!!key && key !== "") {
+      setHighlightKeyHash(hash(key));
+    }
   }
 
   function onUnhover() {
-    setHighlightServerHash(undefined);
+    setHighlightServer(undefined);
     setHighlightKeyHash(undefined);
   }
 
@@ -95,7 +108,11 @@ export default function ConsistentHashingDemo() {
             alignItems: "center",
           }}
         >
-          <Stats serverKeyCounts={csState.sortedServerKeyCounts} />
+          {!!highlightServer ? (
+            <ServerStats server={highlightServer} serverKeyMap={csState.serverKeyMap} />
+          ) : (
+            <OverallStats serverKeyCounts={csState.sortedServerKeyCounts} />
+          )}
         </div>
       </div>
       <DivSpacer />
@@ -169,7 +186,7 @@ function getNextKeyName() {
   return "k-" + uuid().slice(-6);
 }
 
-function Stats(props: { serverKeyCounts: number[] }) {
+function OverallStats(props: { serverKeyCounts: number[] }) {
   const counts = props.serverKeyCounts;
   return (
     <div style={{ textAlign: "center" }}>
@@ -184,6 +201,43 @@ function Stats(props: { serverKeyCounts: number[] }) {
           <strong>{alphaAvg(counts)}</strong> &alpha;-avg&nbsp;
         </>
       )}
+    </div>
+  );
+}
+
+function ServerStats(props: { server: string; serverKeyMap: ServerKeyMap }) {
+  const { server, serverKeyMap } = props;
+  const keys = serverKeyMap[server];
+  const servers = Object.keys(serverKeyMap).map((k) => k);
+  const serverIndex = servers.indexOf(server);
+  const previousServerIndex = serverIndex === 0 ? servers.length - 1 : serverIndex - 1;
+  const previousServer = servers[previousServerIndex];
+  const startHash = hash(previousServer);
+  const endHash = hash(server) - 1;
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      server <strong>{server}</strong>
+      <br />
+      <br />
+      hash range
+      <br />
+      <strong>
+        {(startHash > endHash && (
+          <>
+            [{format(startHash)} ... 0]
+            <br />
+            [0 ... {format(endHash)}]
+          </>
+        )) || (
+          <>
+            [{format(startHash)} ... {format(endHash)}]
+          </>
+        )}
+      </strong>
+      <br />
+      <br />
+      <strong>{keys.length}</strong> keys
     </div>
   );
 }
@@ -235,3 +289,5 @@ function alphaAvg(values: number[]) {
   const trimmed = sorted.slice(k, -k);
   return (trimmed.reduce((sum, i) => sum + i, 0) / trimmed.length).toFixed(1);
 }
+
+const format = new Intl.NumberFormat().format;
