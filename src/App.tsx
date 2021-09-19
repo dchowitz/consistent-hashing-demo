@@ -15,10 +15,12 @@ export default function App() {
       <ConsistentHashingDemo />
       <h2>TODOs</h2>
       <ul>
-        <li>on add/remove server: show keys reassigned (names, number, percent)</li>
         <li>provide toggle for having virtual server nodes (or not)</li>
         <li>visualize start/end of the hash space</li>
         <li>prevent unnecessary re-renders</li>
+        <li>
+          split <code>ConsistentHashingDemo</code>, extract components
+        </li>
       </ul>
       <h2>Done</h2>
       <p>
@@ -32,6 +34,7 @@ export default function App() {
         <br />✅ on hovering a key the highlight the corresponding hash ring position
         <br />✅ on hovering a server or key highlight the belonging hash space
         <br />✅ show stats: #servers, #keys, average keys/server
+        <br />✅ on add/remove server: show keys reassigned (number, percent, range)
       </p>
     </div>
   );

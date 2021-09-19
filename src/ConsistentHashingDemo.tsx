@@ -7,9 +7,16 @@ import ConsistentHashing, {
 } from "./ConsistentHashing";
 import { v4 as uuid } from "uuid";
 
+type Action = {
+  action: "addServer" | "removeServer";
+  server: string;
+  state: ConsistentHashingInspect;
+};
+
 export default function ConsistentHashingDemo() {
   const csRef = React.useRef(new ConsistentHashing());
   const cs = csRef.current;
+
   const [csState, setCsState] = React.useState<ConsistentHashingInspect>({
     servers: [],
     serverHashes: [],
@@ -18,17 +25,26 @@ export default function ConsistentHashingDemo() {
     serverKeyMap: {},
     sortedServerKeyCounts: [],
   });
+
+  const [lastAction, setLastAction] = React.useState<Action | undefined>();
   const [highlightServer, setHighlightServer] = React.useState<string | undefined>();
   const [highlightKeyHash, setHighlightKeyHash] = React.useState<number | undefined>();
   const isEmpty = csState.keys.length === 0 && csState.servers.length === 0;
   const highlightServerHash = !!highlightServer ? hash(highlightServer) : undefined;
+  const highlightServerExists =
+    highlightServer && !!csState.serverKeyMap[highlightServer];
 
   const onAddServer = (count: number) => () => {
+    let server: string | undefined;
     for (let i = 0; i < count; i++) {
-      const server = getNextServerName();
+      server = getNextServerName();
       cs.addServer(server);
     }
-    setCsState(cs.inspect());
+    const newState = cs.inspect();
+    setCsState(newState);
+    if (server) {
+      setLastAction({ action: "addServer", server, state: newState });
+    }
   };
 
   function onRemoveServer(e: React.MouseEvent) {
@@ -37,6 +53,7 @@ export default function ConsistentHashingDemo() {
       cs.removeServer(server);
       setCsState(cs.inspect());
       setHighlightServer(undefined);
+      setLastAction({ action: "removeServer", server, state: csState });
     }
   }
 
@@ -53,6 +70,7 @@ export default function ConsistentHashingDemo() {
       cs.addKey(key);
     }
     setCsState(cs.inspect());
+    setLastAction(undefined);
   };
 
   function onRemoveKey(e: React.MouseEvent) {
@@ -62,6 +80,7 @@ export default function ConsistentHashingDemo() {
       setCsState(cs.inspect());
       setHighlightKeyHash(undefined);
       setHighlightServer(undefined);
+      setLastAction(undefined);
     }
   }
 
@@ -81,6 +100,9 @@ export default function ConsistentHashingDemo() {
   function onReset() {
     csRef.current = new ConsistentHashing();
     setCsState(csRef.current.inspect());
+    setHighlightKeyHash(undefined);
+    setHighlightServer(undefined);
+    setLastAction(undefined);
   }
 
   return (
@@ -93,7 +115,7 @@ export default function ConsistentHashingDemo() {
       }}
     >
       <div style={{ position: "relative" }}>
-        <div style={{ position: "absolute" }}>
+        <div style={{ position: "absolute", zIndex: -1 }}>
           <CircularHashSpace
             serverHashes={csState.serverHashes}
             keyHashes={csState.keyHashes}
@@ -106,14 +128,22 @@ export default function ConsistentHashingDemo() {
             width: 400,
             height: 400,
             display: "flex",
-            justifyContent: "center",
+            flexDirection: "column",
+            justifyContent: "space-around",
             alignItems: "center",
           }}
         >
-          {!!highlightServer ? (
-            <ServerStats server={highlightServer} serverKeyMap={csState.serverKeyMap} />
-          ) : (
-            <OverallStats serverKeyCounts={csState.sortedServerKeyCounts} />
+          <div style={{ height: "50%" }}>
+            {highlightServerExists ? (
+              <ServerStats server={highlightServer} serverKeyMap={csState.serverKeyMap} />
+            ) : (
+              <OverallStats serverKeyCounts={csState.sortedServerKeyCounts} />
+            )}
+          </div>
+          {lastAction && (
+            <div onMouseOver={onHoverServer} onMouseLeave={onUnhover}>
+              <LastActionStats action={lastAction} />
+            </div>
           )}
         </div>
       </div>
@@ -190,7 +220,6 @@ function getNextKeyName() {
 
 function OverallStats(props: { serverKeyCounts: number[] }) {
   const counts = props.serverKeyCounts;
-  console.log("counts", counts);
   return (
     <div style={{ textAlign: "center" }}>
       {counts.length > 0 && (
@@ -245,10 +274,30 @@ function ServerStats(props: { server: string; serverKeyMap: ServerKeyMap }) {
   );
 }
 
+function LastActionStats(props: { action: Action }) {
+  const { action, server, state } = props.action;
+  const keyCount = state.serverKeyMap[server]?.length || 0;
+  const keyCountPercent = keyCount > 0 && keyCount / state.keys.length;
+  const actionName = action === "addServer" ? "adding" : "removing";
+  return (
+    <div style={{ textAlign: "center" }}>
+      reassigned <strong>{keyCount}</strong> keys{" "}
+      {keyCountPercent && `(${formatPercent(keyCountPercent)})`}
+      <br />
+      by {actionName} server <Item name={server} />
+    </div>
+  );
+}
+
 function Item(props: { name: string }) {
   return (
-    <div style={{ fontFamily: "monospace", padding: "0.25rem" }}>
-      <a id={props.name} href={"#" + props.name}>
+    <div
+      style={{
+        fontFamily: "monospace",
+        padding: "0.25rem",
+      }}
+    >
+      <a id={props.name} href="#">
         {props.name}
       </a>
     </div>
@@ -294,3 +343,7 @@ function alphaAvg(values: number[]) {
 }
 
 const format = new Intl.NumberFormat().format;
+const formatPercent = new Intl.NumberFormat(undefined, {
+  style: "percent",
+  maximumFractionDigits: 1,
+}).format;
