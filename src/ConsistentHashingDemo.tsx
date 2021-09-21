@@ -1,23 +1,23 @@
 import * as React from "react";
-import CircularHashSpace from "./CircularHashSpace";
-import ConsistentHashing, {
-  ConsistentHashingInspect,
-  hash,
-  ServerKeyMap,
-} from "./ConsistentHashing";
+import CircularHashSpace from "./visualization/CircularHashSpace";
+import ConsistentHashing, { ConsistentHashingState, hash } from "./ConsistentHashing";
 import { v4 as uuid } from "uuid";
+import ServerStats from "./ServerStats";
+import LastActionStats from "./LastActionStats";
+import OverallStats from "./OverallStats";
+import { DivSpacer, SpanSpacer, Item } from "./Shared";
 
-type Action = {
+export type Action = {
   action: "addServer" | "removeServer";
   server: string;
-  state: ConsistentHashingInspect;
+  state: ConsistentHashingState;
 };
 
 export default function ConsistentHashingDemo() {
   const csRef = React.useRef(new ConsistentHashing());
   const cs = csRef.current;
 
-  const [csState, setCsState] = React.useState<ConsistentHashingInspect>({
+  const [csState, setCsState] = React.useState<ConsistentHashingState>({
     servers: [],
     serverHashes: [],
     keys: [],
@@ -111,7 +111,6 @@ export default function ConsistentHashingDemo() {
         display: "flex",
         flexDirection: "row",
         justifyContent: "flex-start",
-        fontFamily: "sans-serif",
       }}
     >
       <div style={{ position: "relative" }}>
@@ -217,133 +216,3 @@ function getNextServerName() {
 function getNextKeyName() {
   return "k-" + uuid().slice(-6);
 }
-
-function OverallStats(props: { serverKeyCounts: number[] }) {
-  const counts = props.serverKeyCounts;
-  return (
-    <div style={{ textAlign: "center" }}>
-      {counts.length > 0 && (
-        <>
-          keys / server
-          <br />
-          <strong>{counts[0]}</strong> min,&nbsp;
-          <strong>{counts[counts.length - 1]}</strong> max,
-          <br />
-          <strong>{median(counts)}</strong> median,&nbsp;
-          <strong>{alphaAvg(counts)}</strong> &alpha;-avg&nbsp;
-        </>
-      )}
-    </div>
-  );
-}
-
-function ServerStats(props: { server: string; serverKeyMap: ServerKeyMap }) {
-  const { server, serverKeyMap } = props;
-  const keys = serverKeyMap[server];
-  const servers = Object.keys(serverKeyMap).map((k) => k);
-  const serverIndex = servers.indexOf(server);
-  const previousServerIndex = serverIndex === 0 ? servers.length - 1 : serverIndex - 1;
-  const previousServer = servers[previousServerIndex];
-  const startHash = hash(previousServer);
-  const endHash = hash(server) - 1;
-
-  return (
-    <div style={{ textAlign: "center" }}>
-      server <strong>{server}</strong>
-      <br />
-      <br />
-      hash range
-      <br />
-      <strong>
-        {(startHash > endHash && (
-          <>
-            [{format(startHash)} ... 0]
-            <br />
-            [0 ... {format(endHash)}]
-          </>
-        )) || (
-          <>
-            [{format(startHash)} ... {format(endHash)}]
-          </>
-        )}
-      </strong>
-      <br />
-      <br />
-      <strong>{keys.length}</strong> key{keys.length !== 1 && "s"}
-    </div>
-  );
-}
-
-function LastActionStats(props: { action: Action }) {
-  const { action, server, state } = props.action;
-  const keyCount = state.serverKeyMap[server]?.length || 0;
-  const keyCountPercent = keyCount > 0 && keyCount / state.keys.length;
-  const actionName = action === "addServer" ? "adding" : "removing";
-  return (
-    <div style={{ textAlign: "center" }}>
-      reassigned <strong>{keyCount}</strong> keys{" "}
-      {keyCountPercent && `(${formatPercent(keyCountPercent)})`}
-      <br />
-      by {actionName} server <Item name={server} />
-    </div>
-  );
-}
-
-function Item(props: { name: string }) {
-  return (
-    <div
-      style={{
-        fontFamily: "monospace",
-        padding: "0.25rem",
-      }}
-    >
-      <a id={props.name} href="#">
-        {props.name}
-      </a>
-    </div>
-  );
-}
-
-function DivSpacer() {
-  return <div style={{ marginTop: "0.5rem", marginLeft: "0.5rem" }} />;
-}
-function SpanSpacer() {
-  return <span style={{ marginLeft: "0.5rem" }} />;
-}
-
-function median(values: number[]) {
-  const sorted = [...values].sort((a, b) => a - b);
-  const l = sorted.length;
-  if (l === 0) {
-    return undefined;
-  }
-
-  if (l % 2 === 1) {
-    // l=1: 0
-    // l=3: 0,1,2
-    // l=5: 0,1,2,3,4
-    const mid = (l - 1) / 2;
-    return sorted[mid];
-  }
-
-  // l=2: 0,1
-  // l=4: 0,1,2,3
-  // l=6: 0,1,2,3,4,5
-  const m1 = l / 2;
-  const m2 = m1 - 1;
-  return ((sorted[m1] + sorted[m2]) / 2).toFixed(1);
-}
-
-function alphaAvg(values: number[]) {
-  const alpha = 0.1; // we ignore both 10% of values from start *and* end (20% in sum)
-  const sorted = [...values].sort((a, b) => a - b);
-  const k = Math.floor(alpha * sorted.length);
-  const trimmed = k > 0 ? sorted.slice(k, -k) : sorted;
-  return (trimmed.reduce((sum, i) => sum + i, 0) / trimmed.length).toFixed(1);
-}
-
-const format = new Intl.NumberFormat().format;
-const formatPercent = new Intl.NumberFormat(undefined, {
-  style: "percent",
-  maximumFractionDigits: 1,
-}).format;
