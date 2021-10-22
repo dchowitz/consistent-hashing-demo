@@ -1,7 +1,10 @@
 import * as React from "react";
 import HighlightHashRange from "./HighlightHashRange";
 import KeyNode from "./KeyNode";
+import KeyRing from "./KeyRing";
 import ServerNode from "./ServerNode";
+
+const MAX_KEY_HASHES = 1000;
 
 export default function CircularHashSpace(props: {
   serverHashes: number[];
@@ -70,12 +73,15 @@ export default function CircularHashSpace(props: {
           />
         ))}
 
-      {keyHashes.map((h) => (
-        <KeyNode key={h} circle={circle} hash={h} />
-      ))}
+      {(keyHashes.length <= MAX_KEY_HASHES &&
+        keyHashes.map((h) => <KeyNode key={h} circle={circle} hash={h} />)) || (
+        <KeyRing circle={circle} />
+      )}
+
       {highlightKeyHash !== undefined && (
         <KeyNode hash={highlightKeyHash} circle={circle} highlight />
       )}
+
       {serverHashes.map((h) => (
         <ServerNode
           key={h}
@@ -84,6 +90,7 @@ export default function CircularHashSpace(props: {
           highlight={highlightServerHash === h}
         />
       ))}
+
       {successorServerHash !== undefined && (
         <ServerNode circle={circle} hash={successorServerHash} highlight />
       )}

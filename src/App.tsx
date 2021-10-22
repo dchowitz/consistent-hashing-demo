@@ -15,11 +15,8 @@ export default function App() {
       <ConsistentHashingDemo />
       <h2>TODOs</h2>
       <ul>
+        <li>legend - what color means what</li>
         <li>prevent unnecessary re-renders</li>
-        <li>
-          introduce key threshhold to prevent rendering of lots of keys which could anyway
-          not be distinguished from each other
-        </li>
         <li>provide toggle for having virtual server nodes (or not)</li>
         <li>visualize start/end of the hash space</li>
         <li>try population of several million keys (being more realistic)</li>
