@@ -16,7 +16,6 @@ export default function App() {
       <h2>TODOs</h2>
       <ul>
         <li>legend - what color means what</li>
-        <li>prevent unnecessary re-renders</li>
         <li>provide toggle for having virtual server nodes (or not)</li>
         <li>visualize start/end of the hash space</li>
         <li>try population of several million keys (being more realistic)</li>

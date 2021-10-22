@@ -169,9 +169,7 @@ export default function ConsistentHashingDemo() {
           onMouseOver={onHoverServer}
           onMouseLeave={onUnhover}
         >
-          {csState.servers.map((s) => (
-            <Item key={s} name={s} />
-          ))}
+          <MemoizedNodeList names={csState.servers} />
         </div>
       </div>
       <DivSpacer />
@@ -200,14 +198,25 @@ export default function ConsistentHashingDemo() {
           onMouseOver={onHoverKey}
           onMouseLeave={onUnhover}
         >
-          {csState.keys.map((k) => (
-            <Item key={k} name={k} />
-          ))}
+          <MemoizedNodeList names={csState.keys} />
         </div>
       </div>
     </div>
   );
 }
+
+const MemoizedNodeList = React.memo(
+  function NodeList(props: { names: string[] }) {
+    return (
+      <>
+        {props.names.map((k) => (
+          <Item key={k} name={k} />
+        ))}
+      </>
+    );
+  },
+  (prev, next) => prev.names === next.names
+);
 
 function getNextServerName() {
   return "s-" + uuid().slice(-6);
