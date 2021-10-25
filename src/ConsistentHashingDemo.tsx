@@ -108,6 +108,7 @@ export default function ConsistentHashingDemo() {
   return (
     <div
       style={{
+        height: 400,
         display: "flex",
         flexDirection: "row",
         justifyContent: "flex-start",
@@ -147,24 +148,31 @@ export default function ConsistentHashingDemo() {
         </div>
       </div>
       <DivSpacer />
-      <div style={{ flex: 1 }}>
-        <button onClick={onAddServer(1)}>add server</button>
-        <SpanSpacer />
-        <button onClick={onAddServer(10)}>add 10 servers</button>
-        <DivSpacer />
-        {!!csState.servers.length && (
-          <div>
-            <span>
-              <strong style={{ fontSize: "1.5rem" }}>{csState.servers.length}</strong>{" "}
-              servers
-            </span>
-            <br />
-            <em style={{ color: "gray" }}>click a server to remove it</em>
-          </div>
-        )}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <div>
+          <button onClick={onAddServer(1)}>add server</button>
+          <SpanSpacer />
+          <button onClick={onAddServer(10)}>add 10 servers</button>
+          <DivSpacer />
+          {!!csState.servers.length && (
+            <div>
+              <span>
+                <strong style={{ fontSize: "1.5rem" }}>{csState.servers.length}</strong>{" "}
+                servers
+              </span>
+              <br />
+              <em style={{ color: "gray" }}>click a server to remove it</em>
+            </div>
+          )}
+        </div>
         <DivSpacer />
         <div
-          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            overflowY: "auto",
+          }}
           onClick={onRemoveServer}
           onMouseOver={onHoverServer}
           onMouseLeave={onUnhover}
@@ -173,14 +181,16 @@ export default function ConsistentHashingDemo() {
         </div>
       </div>
       <DivSpacer />
-      <div style={{ flex: 3 }}>
-        <button onClick={onAddKey(1)}>add key</button>
-        <SpanSpacer />
-        <button onClick={onAddKey(100)}>add 100 keys</button>
-        <SpanSpacer />
-        <button onClick={onReset} disabled={isEmpty}>
-          reset
-        </button>
+      <div style={{ flex: 3, display: "flex", flexDirection: "column" }}>
+        <div>
+          <button onClick={onAddKey(1)}>add key</button>
+          <SpanSpacer />
+          <button onClick={onAddKey(100)}>add 100 keys</button>
+          <SpanSpacer />
+          <button onClick={onReset} disabled={isEmpty}>
+            reset
+          </button>
+        </div>
         <DivSpacer />
         {!!csState.keys.length && (
           <div>
@@ -193,7 +203,12 @@ export default function ConsistentHashingDemo() {
         )}
         <DivSpacer />
         <div
-          style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            overflowY: "auto",
+          }}
           onClick={onRemoveKey}
           onMouseOver={onHoverKey}
           onMouseLeave={onUnhover}

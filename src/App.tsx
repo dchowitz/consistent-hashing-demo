@@ -16,14 +16,16 @@ export default function App() {
       <h2>TODOs</h2>
       <ul>
         <li>legend - what color means what</li>
-        <li>provide toggle for having virtual server nodes (or not)</li>
+        <li>
+          provide toggle for having virtual server nodes (or not) - or let user choose
+          number of virtual server nodes
+        </li>
         <li>visualize start/end of the hash space</li>
         <li>try population of several million keys (being more realistic)</li>
         <li>
           make mobile usable: double click instead of click to remove key/server; single
           click selects item so that we can highlight
         </li>
-        <li>improve layout: server and key lists should scroll vertically on overflow</li>
         <li>improve style: better text colors (see tachyons for example)</li>
       </ul>
       <h2>DONE</h2>
