@@ -117,7 +117,7 @@ export default function ConsistentHashingDemo() {
       <div style={{ position: "relative" }}>
         <div style={{ position: "absolute", zIndex: -1 }}>
           <CircularHashSpace
-            serverHashes={csState.serverHashes}
+            sortedServerHashes={csState.serverHashes}
             keyHashes={csState.keyHashes}
             highlightServerHash={highlightServerHash}
             highlightKeyHash={highlightKeyHash}

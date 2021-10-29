@@ -1,47 +1,48 @@
 import * as React from "react";
 import { getTheta, Circle } from "./math";
 import Arc from "./Arc";
+import { HashRange } from "./CircularHashSpace";
+import ServerNode from "./ServerNode";
 
 export default function HighlightHashRange(props: {
   circle: Circle;
-  hash: number;
-  sortedHashes: number[];
+  range: HashRange;
   color: string;
 }) {
-  const { circle, hash, sortedHashes, color } = props;
-  if (sortedHashes.length === 0) return <></>;
-  if (sortedHashes.length === 1) {
+  const { circle, range, color } = props;
+
+  if (range === undefined) {
+    return <></>;
+  }
+
+  if (range.type === "all") {
     return (
-      <circle
-        cx={circle.x}
-        cy={circle.y}
-        r={circle.radius}
+      <>
+        <circle
+          cx={circle.x}
+          cy={circle.y}
+          r={circle.radius}
+          stroke={color}
+          strokeWidth={20}
+          fill="transparent"
+        />
+        <ServerNode circle={circle} hash={range.end} highlight />
+      </>
+    );
+  }
+
+  const { start, end } = range;
+  return (
+    <>
+      <Arc
+        circle={circle}
+        startAngle={getTheta(start)}
+        endAngle={getTheta(end)}
         stroke={color}
         strokeWidth={20}
         fill="transparent"
       />
-    );
-  }
-
-  let hashIdx = sortedHashes.findIndex((h) => h === hash);
-  if (hashIdx === -1) {
-    return <></>;
-  }
-
-  const startIdx = hashIdx - 1 < 0 ? sortedHashes.length - 1 : hashIdx - 1;
-  const startHash = sortedHashes[startIdx];
-  if (startHash === hash) {
-    return <></>;
-  }
-
-  return (
-    <Arc
-      circle={circle}
-      startAngle={getTheta(startHash)}
-      endAngle={getTheta(hash)}
-      stroke={color}
-      strokeWidth={20}
-      fill="transparent"
-    />
+      <ServerNode circle={circle} hash={range.end} highlight />
+    </>
   );
 }

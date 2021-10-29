@@ -1,19 +1,19 @@
 import * as React from "react";
+import { MAX_HASH } from "../ConsistentHashing";
 import HighlightHashRange from "./HighlightHashRange";
 import KeyNode from "./KeyNode";
 import KeyRing from "./KeyRing";
 import ServerNode from "./ServerNode";
 
-const MAX_KEY_HASHES = 1000;
+const MAX_KEY_HASHES_BEFORE_SIMPLIFICATION = 1000;
 
 export default function CircularHashSpace(props: {
-  serverHashes: number[];
+  sortedServerHashes: number[];
   keyHashes: number[];
   highlightServerHash?: number;
   highlightKeyHash?: number;
 }) {
-  const { keyHashes, highlightServerHash, highlightKeyHash } = props;
-  const serverHashes = [...props.serverHashes];
+  const { sortedServerHashes, keyHashes, highlightServerHash, highlightKeyHash } = props;
   const width = 400;
   const height = 400;
   const circle = {
@@ -22,18 +22,25 @@ export default function CircularHashSpace(props: {
     radius: width / 2 - 10,
   };
 
-  const highlightServer = highlightServerHash !== undefined;
-  const serverIdx = highlightServer && serverHashes.indexOf(highlightServerHash);
-  const serverDeleted = highlightServer && serverIdx === -1;
-  let successorServerHash: number | undefined;
+  let currentRange: HashRange;
+  let movedRange: HashRange;
 
+  const serverDeleted =
+    highlightServerHash !== undefined &&
+    sortedServerHashes.indexOf(highlightServerHash) === -1;
   if (serverDeleted) {
-    let successorServerIdx = serverHashes.findIndex((h) => h > highlightServerHash);
-    if (successorServerIdx === -1) {
-      successorServerIdx = 0;
+    let successorServerHash = sortedServerHashes.find((h) => h > highlightServerHash);
+    if (successorServerHash === undefined) {
+      successorServerHash = sortedServerHashes[0];
     }
-    successorServerHash = serverHashes[successorServerIdx];
-    serverHashes.splice(successorServerIdx, 0, highlightServerHash);
+    currentRange = {
+      type: "partial",
+      start: highlightServerHash,
+      end: successorServerHash - 1,
+    };
+    movedRange = getHashRange(highlightServerHash, sortedServerHashes);
+  } else if (highlightServerHash !== undefined) {
+    currentRange = getHashRange(highlightServerHash, sortedServerHashes);
   }
 
   return (
@@ -48,32 +55,10 @@ export default function CircularHashSpace(props: {
         fill="transparent"
       />
 
-      {(highlightServer && successorServerHash !== undefined && (
-        <>
-          <HighlightHashRange
-            circle={circle}
-            hash={successorServerHash!}
-            sortedHashes={serverHashes}
-            color="lightblue"
-          />
-          <HighlightHashRange
-            circle={circle}
-            hash={highlightServerHash}
-            sortedHashes={serverHashes}
-            color="lightsalmon"
-          />
-        </>
-      )) ||
-        (highlightServer && (
-          <HighlightHashRange
-            circle={circle}
-            hash={highlightServerHash}
-            sortedHashes={serverHashes}
-            color="lightblue"
-          />
-        ))}
+      <HighlightHashRange circle={circle} range={currentRange} color="lightblue" />
+      <HighlightHashRange circle={circle} range={movedRange} color="lightsalmon" />
 
-      {(keyHashes.length <= MAX_KEY_HASHES &&
+      {(keyHashes.length <= MAX_KEY_HASHES_BEFORE_SIMPLIFICATION &&
         keyHashes.map((h) => <KeyNode key={h} circle={circle} hash={h} />)) || (
         <KeyRing circle={circle} />
       )}
@@ -82,7 +67,7 @@ export default function CircularHashSpace(props: {
         <KeyNode hash={highlightKeyHash} circle={circle} highlight />
       )}
 
-      {serverHashes.map((h) => (
+      {sortedServerHashes.map((h) => (
         <ServerNode
           key={h}
           circle={circle}
@@ -90,10 +75,32 @@ export default function CircularHashSpace(props: {
           highlight={highlightServerHash === h}
         />
       ))}
-
-      {successorServerHash !== undefined && (
-        <ServerNode circle={circle} hash={successorServerHash} highlight />
-      )}
     </svg>
   );
+}
+
+export type HashRange =
+  | { type: "partial"; start: number; end: number }
+  | { type: "all"; end: number }
+  | undefined;
+
+function getHashRange(serverHash: number, sortedServerHashes: number[]): HashRange {
+  if (sortedServerHashes.length === 1) {
+    return { type: "all", end: serverHash };
+  }
+
+  const endIdx = sortedServerHashes.findIndex((h) => h >= serverHash);
+  let startIdx = endIdx - 1;
+  if (startIdx < 0) {
+    startIdx = sortedServerHashes.length - 1;
+  }
+
+  const start = sortedServerHashes[startIdx];
+  const end = serverHash > 0 ? serverHash - 1 : MAX_HASH; // a key hash is mapped to it's nearest server node with a greater hash value
+
+  if (start === end) {
+    return undefined;
+  }
+
+  return { type: "partial", start, end };
 }
