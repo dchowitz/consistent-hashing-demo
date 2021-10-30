@@ -15,7 +15,6 @@ export default function App() {
       <ConsistentHashingDemo />
       <h2>TODOs</h2>
       <ul>
-        <li>legend - what color means what</li>
         <li>
           provide toggle for having virtual server nodes (or not) - or let user choose
           number of virtual server nodes

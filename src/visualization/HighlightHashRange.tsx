@@ -2,7 +2,7 @@ import * as React from "react";
 import { getTheta, Circle } from "./math";
 import Arc from "./Arc";
 import { HashRange } from "./CircularHashSpace";
-import ServerNode from "./ServerNode";
+import ServerNodeTick from "./ServerNodeTick";
 
 export default function HighlightHashRange(props: {
   circle: Circle;
@@ -26,7 +26,7 @@ export default function HighlightHashRange(props: {
           strokeWidth={20}
           fill="transparent"
         />
-        <ServerNode circle={circle} hash={range.end} highlight />
+        <ServerNodeTick circle={circle} hash={range.end} highlight />
       </>
     );
   }
@@ -42,7 +42,7 @@ export default function HighlightHashRange(props: {
         strokeWidth={20}
         fill="transparent"
       />
-      <ServerNode circle={circle} hash={range.end} highlight />
+      <ServerNodeTick circle={circle} hash={range.end} highlight />
     </>
   );
 }

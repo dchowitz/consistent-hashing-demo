@@ -6,6 +6,7 @@ import ServerStats from "./ServerStats";
 import LastActionStats from "./LastActionStats";
 import OverallStats from "./OverallStats";
 import { DivSpacer, SpanSpacer, Item } from "./Shared";
+import Legend from "./visualization/Legend";
 
 export type Action = {
   action: "addServer" | "removeServer";
@@ -106,117 +107,123 @@ export default function ConsistentHashingDemo() {
   }
 
   return (
-    <div
-      style={{
-        height: 400,
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "flex-start",
-      }}
-    >
-      <div style={{ position: "relative" }}>
-        <div style={{ position: "absolute", zIndex: -1 }}>
-          <CircularHashSpace
-            sortedServerHashes={csState.serverHashes}
-            keyHashes={csState.keyHashes}
-            highlightServerHash={highlightServerHash}
-            highlightKeyHash={highlightKeyHash}
-          />
-        </div>
-        <div
-          style={{
-            width: 400,
-            height: 400,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-around",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ height: "50%" }}>
-            {highlightServerExists ? (
-              <ServerStats server={highlightServer} serverKeyMap={csState.serverKeyMap} />
-            ) : (
-              <OverallStats serverKeyCounts={csState.sortedServerKeyCounts} />
+    <>
+      <div
+        style={{
+          height: 400,
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "flex-start",
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          <div style={{ position: "absolute", zIndex: -1 }}>
+            <CircularHashSpace
+              sortedServerHashes={csState.serverHashes}
+              keyHashes={csState.keyHashes}
+              highlightServerHash={highlightServerHash}
+              highlightKeyHash={highlightKeyHash}
+            />
+          </div>
+          <div
+            style={{
+              width: 400,
+              height: 400,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-around",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ height: "50%" }}>
+              {highlightServerExists ? (
+                <ServerStats
+                  server={highlightServer}
+                  serverKeyMap={csState.serverKeyMap}
+                />
+              ) : (
+                <OverallStats serverKeyCounts={csState.sortedServerKeyCounts} />
+              )}
+            </div>
+            {lastAction && (
+              <div onMouseOver={onHoverServer} onMouseLeave={onUnhover}>
+                <LastActionStats action={lastAction} />
+              </div>
             )}
           </div>
-          {lastAction && (
-            <div onMouseOver={onHoverServer} onMouseLeave={onUnhover}>
-              <LastActionStats action={lastAction} />
-            </div>
-          )}
         </div>
-      </div>
-      <DivSpacer />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div>
-          <button onClick={onAddServer(1)}>add server</button>
-          <SpanSpacer />
-          <button onClick={onAddServer(10)}>add 10 servers</button>
+        <DivSpacer />
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div>
+            <button onClick={onAddServer(1)}>add server</button>
+            <SpanSpacer />
+            <button onClick={onAddServer(10)}>add 10 servers</button>
+            <DivSpacer />
+            {!!csState.servers.length && (
+              <div>
+                <span>
+                  <strong style={{ fontSize: "1.5rem" }}>{csState.servers.length}</strong>{" "}
+                  servers
+                </span>
+                <br />
+                <em style={{ color: "gray" }}>click a server to remove it</em>
+              </div>
+            )}
+          </div>
           <DivSpacer />
-          {!!csState.servers.length && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              overflowY: "auto",
+            }}
+            onClick={onRemoveServer}
+            onMouseOver={onHoverServer}
+            onMouseLeave={onUnhover}
+          >
+            <MemoizedNodeList names={csState.servers} />
+          </div>
+        </div>
+        <DivSpacer />
+        <div style={{ flex: 3, display: "flex", flexDirection: "column" }}>
+          <div>
+            <button onClick={onAddKey(1)}>add key</button>
+            <SpanSpacer />
+            <button onClick={onAddKey(100)}>add 100 keys</button>
+            <SpanSpacer />
+            <button onClick={onReset} disabled={isEmpty}>
+              reset
+            </button>
+          </div>
+          <DivSpacer />
+          {!!csState.keys.length && (
             <div>
               <span>
-                <strong style={{ fontSize: "1.5rem" }}>{csState.servers.length}</strong>{" "}
-                servers
+                <strong style={{ fontSize: "1.5rem" }}>{csState.keys.length}</strong> keys
               </span>
               <br />
-              <em style={{ color: "gray" }}>click a server to remove it</em>
+              <em style={{ color: "gray" }}>click a key to remove it</em>
             </div>
           )}
-        </div>
-        <DivSpacer />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            overflowY: "auto",
-          }}
-          onClick={onRemoveServer}
-          onMouseOver={onHoverServer}
-          onMouseLeave={onUnhover}
-        >
-          <MemoizedNodeList names={csState.servers} />
-        </div>
-      </div>
-      <DivSpacer />
-      <div style={{ flex: 3, display: "flex", flexDirection: "column" }}>
-        <div>
-          <button onClick={onAddKey(1)}>add key</button>
-          <SpanSpacer />
-          <button onClick={onAddKey(100)}>add 100 keys</button>
-          <SpanSpacer />
-          <button onClick={onReset} disabled={isEmpty}>
-            reset
-          </button>
-        </div>
-        <DivSpacer />
-        {!!csState.keys.length && (
-          <div>
-            <span>
-              <strong style={{ fontSize: "1.5rem" }}>{csState.keys.length}</strong> keys
-            </span>
-            <br />
-            <em style={{ color: "gray" }}>click a key to remove it</em>
+          <DivSpacer />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              overflowY: "auto",
+            }}
+            onClick={onRemoveKey}
+            onMouseOver={onHoverKey}
+            onMouseLeave={onUnhover}
+          >
+            <MemoizedNodeList names={csState.keys} />
           </div>
-        )}
-        <DivSpacer />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            overflowY: "auto",
-          }}
-          onClick={onRemoveKey}
-          onMouseOver={onHoverKey}
-          onMouseLeave={onUnhover}
-        >
-          <MemoizedNodeList names={csState.keys} />
         </div>
       </div>
-    </div>
+      <Legend />
+    </>
   );
 }
 

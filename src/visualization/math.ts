@@ -17,9 +17,16 @@ export function getTheta(hash: number) {
  * - positive y-axis denotes 0rad (0°)
  * - positive x-axis denotes pi/2rad (90°)
  */
-export function getCartesianPoint(circle: Circle, theta: number): [x: number, y: number] {
-  return [
-    circle.radius * Math.cos(theta - MATH_PI_HALF) + circle.x,
-    circle.radius * Math.sin(theta - MATH_PI_HALF) + circle.y,
-  ];
+export function getCartesianPoint(circle: Circle, theta: number) {
+  return {
+    x: circle.radius * Math.cos(theta - MATH_PI_HALF) + circle.x,
+    y: circle.radius * Math.sin(theta - MATH_PI_HALF) + circle.y,
+  };
+}
+
+/**
+ * Maps a hash to a corresponding point on a circle.
+ */
+export function getCirclePoint(circle: Circle, hash: number) {
+  return getCartesianPoint(circle, getTheta(hash));
 }

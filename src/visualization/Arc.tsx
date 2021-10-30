@@ -9,8 +9,8 @@ export default function Arc(
   } & React.SVGProps<SVGPathElement>
 ) {
   const { circle, startAngle, endAngle, ...others } = props;
-  const [startX, startY] = getCartesianPoint(circle, startAngle);
-  const [endX, endY] = getCartesianPoint(circle, endAngle);
+  const start = getCartesianPoint(circle, startAngle);
+  const end = getCartesianPoint(circle, endAngle);
 
   let size = endAngle - startAngle;
   size = size > 0 ? size : MATH_PI_DOUBLE + size;
@@ -18,8 +18,8 @@ export default function Arc(
 
   // prettier-ignore
   const d = [
-    "M", startX, startY,
-    "A", circle.radius, circle.radius, 0, isLarge ? 1 : 0, 1, endX, endY
+    "M", start.x, start.y,
+    "A", circle.radius, circle.radius, 0, isLarge ? 1 : 0, 1, end.x, end.y
   ].join(" ");
 
   return <path d={d} {...others} />;

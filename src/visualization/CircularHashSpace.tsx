@@ -1,9 +1,10 @@
 import * as React from "react";
 import { MAX_HASH } from "../ConsistentHashing";
 import HighlightHashRange from "./HighlightHashRange";
-import KeyNode from "./KeyNode";
+import KeyNode from "./KeyNodeCircle";
 import KeyRing from "./KeyRing";
-import ServerNode from "./ServerNode";
+import { getCirclePoint } from "./math";
+import ServerNodeTick from "./ServerNodeTick";
 
 const MAX_KEY_HASHES_BEFORE_SIMPLIFICATION = 1000;
 
@@ -59,16 +60,16 @@ export default function CircularHashSpace(props: {
       <HighlightHashRange circle={circle} range={movedRange} color="lightsalmon" />
 
       {(keyHashes.length <= MAX_KEY_HASHES_BEFORE_SIMPLIFICATION &&
-        keyHashes.map((h) => <KeyNode key={h} circle={circle} hash={h} />)) || (
+        keyHashes.map((h) => <KeyNode key={h} {...getCirclePoint(circle, h)} />)) || (
         <KeyRing circle={circle} />
       )}
 
       {highlightKeyHash !== undefined && (
-        <KeyNode hash={highlightKeyHash} circle={circle} highlight />
+        <KeyNode {...getCirclePoint(circle, highlightKeyHash)} highlight />
       )}
 
       {sortedServerHashes.map((h) => (
-        <ServerNode
+        <ServerNodeTick
           key={h}
           circle={circle}
           hash={h}
