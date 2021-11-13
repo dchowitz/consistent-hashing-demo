@@ -1,6 +1,9 @@
 import * as React from "react";
 import CircularHashSpace from "./visualization/CircularHashSpace";
-import ConsistentHashing, { ConsistentHashingState, hash } from "./ConsistentHashing";
+import ConsistentHashing, {
+  ConsistentHashingState,
+  emptyConsistentHashingState,
+} from "./ConsistentHashing";
 import { v4 as uuid } from "uuid";
 import ServerStats from "./ServerStats";
 import LastActionStats from "./LastActionStats";
@@ -18,20 +21,11 @@ export default function ConsistentHashingDemo() {
   const csRef = React.useRef(new ConsistentHashing());
   const cs = csRef.current;
 
-  const [csState, setCsState] = React.useState<ConsistentHashingState>({
-    servers: [],
-    serverHashes: [],
-    keys: [],
-    keyHashes: [],
-    serverKeyMap: {},
-    sortedServerKeyCounts: [],
-  });
-
+  const [csState, setCsState] = React.useState(emptyConsistentHashingState);
   const [lastAction, setLastAction] = React.useState<Action | undefined>();
   const [highlightServer, setHighlightServer] = React.useState<string | undefined>();
-  const [highlightKeyHash, setHighlightKeyHash] = React.useState<number | undefined>();
+  const [highlightKey, setHighlightKey] = React.useState<string | undefined>();
   const isEmpty = csState.keys.length === 0 && csState.servers.length === 0;
-  const highlightServerHash = !!highlightServer ? hash(highlightServer) : undefined;
   const highlightServerExists =
     highlightServer && !!csState.serverKeyMap[highlightServer];
 
@@ -79,7 +73,7 @@ export default function ConsistentHashingDemo() {
     if (!!key && key !== "") {
       cs.removeKey(key);
       setCsState(cs.inspect());
-      setHighlightKeyHash(undefined);
+      setHighlightKey(undefined);
       setHighlightServer(undefined);
       setLastAction(undefined);
     }
@@ -88,20 +82,20 @@ export default function ConsistentHashingDemo() {
   function onHoverKey(e: React.MouseEvent) {
     const key = (e.target as any).id;
     if (!!key && key !== "") {
-      setHighlightKeyHash(hash(key));
+      setHighlightKey(key);
       setHighlightServer(cs.lookupServer(key));
     }
   }
 
   function onUnhover() {
     setHighlightServer(undefined);
-    setHighlightKeyHash(undefined);
+    setHighlightKey(undefined);
   }
 
   function onReset() {
     csRef.current = new ConsistentHashing();
     setCsState(csRef.current.inspect());
-    setHighlightKeyHash(undefined);
+    setHighlightKey(undefined);
     setHighlightServer(undefined);
     setLastAction(undefined);
   }
@@ -119,10 +113,9 @@ export default function ConsistentHashingDemo() {
         <div style={{ position: "relative" }}>
           <div style={{ position: "absolute", zIndex: -1 }}>
             <CircularHashSpace
-              sortedServerHashes={csState.serverHashes}
-              keyHashes={csState.keyHashes}
-              highlightServerHash={highlightServerHash}
-              highlightKeyHash={highlightKeyHash}
+              state={csState}
+              highlightKey={highlightKey}
+              highlightServer={highlightServer}
             />
           </div>
           <div

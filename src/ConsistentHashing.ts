@@ -1,26 +1,54 @@
 import BinarySearchTree from "./BinarySearchTree";
 
+export const emptyConsistentHashingState: ConsistentHashingState = {
+  servers: [],
+  sortedServerHashes: [],
+  serverHashMap: {},
+  keys: [],
+  keyHashes: [],
+  serverKeyMap: {},
+  sortedServerKeyCounts: [],
+};
+
 export type ConsistentHashingState = {
   servers: string[];
-  serverHashes: number[];
+  sortedServerHashes: number[];
+  serverHashMap: ServerHashMap;
   keys: string[];
   keyHashes: number[];
   serverKeyMap: ServerKeyMap;
   sortedServerKeyCounts: number[];
 };
 
+export type ServerHashMap = { [server: string]: number[] };
+
 export type ServerKeyMap = { [server: string]: string[] };
 
+// each server can be represented by multiple nodes on the hash ring
+const VIRTUAL_SERVER_NODES = Array.apply(null, new Array(3)).map((_, i) => i);
+
 export default class ConsistentHashing {
-  #servers = new BinarySearchTree<string>();
+  // server nodes in hash order
+  #serversSortedByHash = new BinarySearchTree<string>();
+
+  // names of physical servers
+  #servers = new Set<string>();
+
+  // keys, each one is associated with a single virtual server node
   #keys = new Set<string>();
 
   addServer(server: string) {
-    this.#servers.insert(hash(server), server);
+    this.#servers.add(server);
+    virtualServerHashes(server).forEach((h) => {
+      this.#serversSortedByHash.insert(h, server);
+    });
   }
 
   removeServer(server: string) {
-    this.#servers.remove(hash(server));
+    this.#servers.delete(server);
+    virtualServerHashes(server).forEach((h) => {
+      this.#serversSortedByHash.remove(h);
+    });
   }
 
   addKey(key: string) {
@@ -32,18 +60,20 @@ export default class ConsistentHashing {
   }
 
   lookupServer(key: string) {
-    let server = this.#servers.findNearestGreaterThan(hash(key));
+    let server = this.#serversSortedByHash.findNearestGreaterThan(hash(key));
     if (server === undefined) {
       // either there are no servers or
       // there is no server-hash greater than key-hash
-      // -> search again from beginning of hash space [0, END]
-      server = this.#servers.findNearestGreaterThan(0);
+      // -> search again from beginning of hash space
+      server = this.#serversSortedByHash.findNearestGreaterThan(0);
     }
     return server?.value;
   }
 
   inspect() {
-    const serverNodes = this.#servers.toOrderedArray();
+    const serverNodes = this.#serversSortedByHash.toOrderedArray();
+
+    // TODO - holding the keys here is questionable
     const keys = [...this.#keys.values()];
 
     const serverKeyMap = serverNodes.reduce((map, s) => {
@@ -63,8 +93,13 @@ export default class ConsistentHashing {
     const serverKeyCounts = Object.values(serverKeyMap).map((keys) => keys.length);
 
     return {
-      servers: serverNodes.map((n) => n.value),
-      serverHashes: serverNodes.map((n) => n.key),
+      servers: [...this.#servers.values()],
+      sortedServerHashes: serverNodes.map((n) => n.key),
+      serverHashMap: serverNodes.reduce((result, n) => {
+        const current = result[n.value] || [];
+        result[n.value] = [...current, n.key];
+        return result;
+      }, {} as ServerHashMap),
       keys,
       keyHashes: keys.map(hash).sort((a, b) => a - b),
       serverKeyMap,
@@ -73,14 +108,18 @@ export default class ConsistentHashing {
   }
 }
 
+// determines the hashes for a given server
+function virtualServerHashes(server: string) {
+  return VIRTUAL_SERVER_NODES.map((i) => hash(server + i));
+}
+
 const MIN_HASH = 0x00;
 const MAX_HASH = 0xffffffff;
-export { MIN_HASH, MAX_HASH };
 
 /**
  * xmur3 hash (32bit), based on https://stackoverflow.com/a/47593316/339272
  */
-export function hash(str: string) {
+function hash(str: string) {
   let h = 1779033703 ^ str.length;
 
   for (let i = 0; i < str.length; i++) {
@@ -93,3 +132,5 @@ export function hash(str: string) {
 
   return (h ^= h >>> 16) >>> 0;
 }
+
+export { MIN_HASH, MAX_HASH, hash, virtualServerHashes };
