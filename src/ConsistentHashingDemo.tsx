@@ -130,10 +130,7 @@ export default function ConsistentHashingDemo() {
           >
             <div style={{ height: "50%" }}>
               {highlightServerExists ? (
-                <ServerStats
-                  server={highlightServer}
-                  serverKeyMap={csState.serverKeyMap}
-                />
+                <ServerStats server={highlightServer} state={csState} />
               ) : (
                 <OverallStats serverKeyCounts={csState.sortedServerKeyCounts} />
               )}

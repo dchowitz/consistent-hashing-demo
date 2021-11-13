@@ -1,43 +1,49 @@
 import * as React from "react";
-import { hash, ServerKeyMap } from "./ConsistentHashing";
+import { ConsistentHashingState, getHashRange, MAX_HASH } from "./ConsistentHashing";
 import { format } from "./Shared";
 
 export default function ServerStats(props: {
   server: string;
-  serverKeyMap: ServerKeyMap;
+  state: ConsistentHashingState;
 }) {
-  const { server, serverKeyMap } = props;
-  const keys = serverKeyMap[server];
-  const servers = Object.keys(serverKeyMap).map((k) => k);
-  const serverIndex = servers.indexOf(server);
-  const previousServerIndex = serverIndex === 0 ? servers.length - 1 : serverIndex - 1;
-  const previousServer = servers[previousServerIndex];
-  const startHash = hash(previousServer);
-  const endHash = hash(server) - 1;
+  const { server, state } = props;
+  const keyCount = state.serverKeyMap[server].length;
+  const ranges: { start: number; end: number }[] = [];
+
+  (state.serverHashMap[server] || []).forEach((h) => {
+    const range = getHashRange(h, state.sortedServerHashes);
+    if (range === undefined) {
+      return;
+    }
+    if (range.type === "partial") {
+      if (range.start > range.end) {
+        ranges.push({ start: range.start, end: 0 });
+        ranges.push({ start: 0, end: range.end });
+      } else {
+        ranges.push(range);
+      }
+    } else {
+      ranges.push({ start: 0, end: MAX_HASH });
+    }
+  });
 
   return (
     <div style={{ textAlign: "center" }}>
       server <strong>{server}</strong>
       <br />
       <br />
-      hash range
+      hash range{ranges.length !== 1 && "s"}
       <br />
-      <strong>
-        {(startHash > endHash && (
-          <>
-            [{format(startHash)} ... 0]
-            <br />
-            [0 ... {format(endHash)}]
-          </>
-        )) || (
-          <>
-            [{format(startHash)} ... {format(endHash)}]
-          </>
-        )}
-      </strong>
+      {ranges.map((r) => (
+        <div key={r.start}>
+          <strong>
+            [{format(r.start)} ... {format(r.end)}]
+          </strong>
+        </div>
+      ))}
       <br />
       <br />
-      <strong>{keys.length}</strong> key{keys.length !== 1 && "s"}
+      <strong>{keyCount}</strong> key{keyCount !== 1 && "s"}
     </div>
   );
 }

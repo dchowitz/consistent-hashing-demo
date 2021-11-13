@@ -20,8 +20,8 @@ export type ConsistentHashingState = {
   sortedServerKeyCounts: number[];
 };
 
+// TODO - could consolidate both
 export type ServerHashMap = { [server: string]: number[] };
-
 export type ServerKeyMap = { [server: string]: string[] };
 
 // each server can be represented by multiple nodes on the hash ring
@@ -70,6 +70,7 @@ export default class ConsistentHashing {
     return server?.value;
   }
 
+  // TODO - return getHashRange etc.
   inspect() {
     const serverNodes = this.#serversSortedByHash.toOrderedArray();
 
@@ -133,4 +134,52 @@ function hash(str: string) {
   return (h ^= h >>> 16) >>> 0;
 }
 
-export { MIN_HASH, MAX_HASH, hash, virtualServerHashes };
+type HashRange =
+  | { type: "partial"; start: number; end: number }
+  | { type: "all"; end: number }
+  | undefined;
+
+function getHashRange(serverHash: number, sortedServerHashes: number[]): HashRange {
+  if (sortedServerHashes.length === 1) {
+    return { type: "all", end: serverHash };
+  }
+
+  const endIdx = sortedServerHashes.findIndex((h) => h >= serverHash);
+  let startIdx = endIdx - 1;
+  if (startIdx < 0) {
+    startIdx = sortedServerHashes.length - 1;
+  }
+
+  const start = sortedServerHashes[startIdx];
+  const end = serverHash > 0 ? serverHash - 1 : MAX_HASH; // a key hash is mapped to it's nearest server node with a greater hash value
+
+  if (start === end) {
+    return undefined;
+  }
+
+  return { type: "partial", start, end };
+}
+
+function getSuccessorWrapping(hash: number, sortedHashes: number[]) {
+  if (sortedHashes.length < 2) {
+    return undefined;
+  }
+
+  const idx = sortedHashes.indexOf(hash);
+  if (idx === -1) {
+    return undefined;
+  }
+
+  const inc = idx + 1;
+  return sortedHashes[inc < sortedHashes.length ? inc : 0];
+}
+
+export {
+  MIN_HASH,
+  MAX_HASH,
+  hash,
+  HashRange,
+  virtualServerHashes,
+  getHashRange,
+  getSuccessorWrapping,
+};
