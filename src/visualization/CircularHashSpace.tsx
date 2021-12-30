@@ -21,16 +21,17 @@ export default function CircularHashSpace2(props: {
   highlightKey?: string;
   showLabels?: boolean;
   showArrow?: boolean;
+  showStartEnd?: boolean;
 }) {
   const { state, highlightServer, highlightKey } = props;
   const showLabels = !!props.showLabels;
   const showArrow = !!props.showArrow;
-  const width = 400;
-  const height = 400;
+  const showStartEnd = !!props.showStartEnd;
+  const dim = 400;
   const circle = {
-    x: width / 2,
-    y: height / 2,
-    radius: width / 2 - 10,
+    x: dim / 2,
+    y: dim / 2,
+    radius: dim / 2 - 10,
   };
 
   const highlightKeyHash = (highlightKey && hash(highlightKey)) || undefined;
@@ -67,8 +68,13 @@ export default function CircularHashSpace2(props: {
   }
 
   return (
-    <svg version="1.1" width={width} height={height} xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" stroke="gray" strokeWidth="2" fill="transparent" />
+    <svg
+      version="1.1"
+      height="100%"
+      width="100%"
+      viewBox={`0 0 ${dim} ${dim}`}
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <circle
         cx={circle.x}
         cy={circle.y}
@@ -77,6 +83,8 @@ export default function CircularHashSpace2(props: {
         strokeWidth="2"
         fill="transparent"
       />
+
+      {/* {showStartEnd && <StartEnd circle={circle}/>} */}
 
       {hashRanges
         .filter((r) => !!r)
@@ -95,7 +103,7 @@ export default function CircularHashSpace2(props: {
           />
         ))}
 
-      {highlightKeyHash && targetServerHash && (
+      {showArrow && highlightKeyHash && targetServerHash && (
         <Arrow circle={circle} fromHash={highlightKeyHash} toHash={targetServerHash} />
       )}
 
@@ -164,7 +172,7 @@ function HashLabel(props: { circle: Circle; hash: number; label: string }) {
 function Arrow(props: { circle: Circle; fromHash: number; toHash: number }) {
   const { circle, fromHash, toHash } = props;
   const p = getCirclePoint(circle, toHash);
-  const d = ["M", 0, 0, "l", -20, -5, "l", 0, 10, "Z"].join(" ");
+  const head = ["M", 0, 0, "l", -20, -5, "l", 0, 10, "Z"].join(" ");
   const deg = (180 / Math.PI) * getTheta(toHash) + 90;
 
   return (
@@ -177,7 +185,7 @@ function Arrow(props: { circle: Circle; fromHash: number; toHash: number }) {
         strokeWidth={3}
         fill="transparent"
       />
-      <path d={d} fill="red" transform={`translate(${p.x},${p.y}) rotate(${deg})`} />
+      <path d={head} fill="red" transform={`translate(${p.x},${p.y}) rotate(${deg})`} />
     </>
   );
 }

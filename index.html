@@ -3,11 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Consistent Hashing Demo</title>
+    <title>Consistent Hashing Demo 2</title>
+    <style>
+      :root {
+        --color-bg: #69f7be;
+        --color-text-main: #000000;
+        --color-primary: #ffff00;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      body {
+        font-family: sans-serif;
+        background-color: var(--color-bg);
+      }
+
+      button,
+      input {
+        font-family: inherit;
+        font-size: 100%;
+        background: #ffffff;
+        border: 1px solid #000000;
+        border-radius: 4px;
+        padding: 0.5rem 1rem;
+        transition: 500ms;
+      }
+
+      .wrapper {
+        min-height: 90vh;
+        display: grid;
+        place-items: center;
+        margin: 0 1rem;
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root" class="wrapper"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
