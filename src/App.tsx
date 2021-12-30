@@ -1,18 +1,11 @@
 import React from "react";
-import ConsistentHashingDemo from "./ConsistentHashingDemo";
+import Demo2 from "./Demo2";
 
 export default function App() {
   return (
     <div style={{ fontFamily: "sans-serif" }}>
       <h1>Consistent Hashing Demo</h1>
-      <p>
-        Description ...
-        <br />
-        the problem
-        <br />
-        the general idea
-      </p>
-      <ConsistentHashingDemo />
+      <Demo2 virtualNodesCount={1} initialNodes={["node-11", "node-13", "node-21"]} />
       <h2>TODOs</h2>
       <ul>
         <li>

@@ -1,6 +1,7 @@
 import BinarySearchTree from "./BinarySearchTree";
 
 export const emptyConsistentHashingState: ConsistentHashingState = {
+  instance: undefined,
   servers: [],
   sortedServerHashes: [],
   serverHashMap: {},
@@ -8,9 +9,12 @@ export const emptyConsistentHashingState: ConsistentHashingState = {
   keyHashes: [],
   serverKeyMap: {},
   sortedServerKeyCounts: [],
+  virtualServerHashes: (server: string) => [],
+  serversByHash: {},
 };
 
 export type ConsistentHashingState = {
+  instance?: ConsistentHashing;
   servers: string[];
   sortedServerHashes: number[];
   serverHashMap: ServerHashMap;
@@ -18,36 +22,49 @@ export type ConsistentHashingState = {
   keyHashes: number[];
   serverKeyMap: ServerKeyMap;
   sortedServerKeyCounts: number[];
+  virtualServerHashes: (server: string) => number[];
+  serversByHash: { [hash: number]: string };
 };
 
 // TODO - could consolidate both
 export type ServerHashMap = { [server: string]: number[] };
 export type ServerKeyMap = { [server: string]: string[] };
 
-// each server can be represented by multiple nodes on the hash ring
-const VIRTUAL_SERVER_NODES = Array.apply(null, new Array(3)).map((_, i) => i);
-
 export default class ConsistentHashing {
   // server nodes in hash order
   #serversSortedByHash = new BinarySearchTree<string>();
 
-  // names of physical servers
+  // names of physical (non-virtual) servers
   #servers = new Set<string>();
 
   // keys, each one is associated with a single virtual server node
   #keys = new Set<string>();
 
+  // each server can be represented by multiple nodes on the hash ring
+  VIRTUAL_SERVER_NODES: number[];
+
+  // allows lookup of server by virtual server
+  #virtualServerMap = new Map() as Map<string, string>;
+
+  constructor(virtualNodesCount: number) {
+    this.VIRTUAL_SERVER_NODES = Array.apply(null, new Array(virtualNodesCount)).map(
+      (_, i) => i
+    );
+  }
+
   addServer(server: string) {
     this.#servers.add(server);
-    virtualServerHashes(server).forEach((h) => {
-      this.#serversSortedByHash.insert(h, server);
+    this.#virtualServerNames(server).forEach((virtualName) => {
+      this.#serversSortedByHash.insert(hash(virtualName), virtualName);
+      this.#virtualServerMap.set(virtualName, server);
     });
   }
 
   removeServer(server: string) {
     this.#servers.delete(server);
-    virtualServerHashes(server).forEach((h) => {
-      this.#serversSortedByHash.remove(h);
+    this.#virtualServerNames(server).forEach((virtualName) => {
+      this.#serversSortedByHash.remove(hash(virtualName));
+      this.#virtualServerMap.delete(virtualName);
     });
   }
 
@@ -59,15 +76,24 @@ export default class ConsistentHashing {
     this.#keys.delete(key);
   }
 
-  lookupServer(key: string) {
-    let server = this.#serversSortedByHash.findNearestGreaterThan(hash(key));
-    if (server === undefined) {
+  lookupVirtualServer(key: string) {
+    let virtualServer = this.#serversSortedByHash.findNearestGreaterThan(hash(key));
+    if (virtualServer === undefined) {
       // either there are no servers or
       // there is no server-hash greater than key-hash
       // -> search again from beginning of hash space
-      server = this.#serversSortedByHash.findNearestGreaterThan(0);
+      virtualServer = this.#serversSortedByHash.findNearestGreaterThan(0);
     }
-    return server?.value;
+    return virtualServer?.value;
+  }
+
+  lookupServer(key: string) {
+    const virtualServer = this.lookupVirtualServer(key);
+    return virtualServer ? this.#virtualServerMap.get(virtualServer) : undefined;
+  }
+
+  #virtualServerNames(server: string) {
+    return this.VIRTUAL_SERVER_NODES.map((i) => server + "_" + i);
   }
 
   // TODO - return getHashRange etc.
@@ -94,6 +120,7 @@ export default class ConsistentHashing {
     const serverKeyCounts = Object.values(serverKeyMap).map((keys) => keys.length);
 
     return {
+      instance: this,
       servers: [...this.#servers.values()],
       sortedServerHashes: serverNodes.map((n) => n.key),
       serverHashMap: serverNodes.reduce((result, n) => {
@@ -105,13 +132,13 @@ export default class ConsistentHashing {
       keyHashes: keys.map(hash).sort((a, b) => a - b),
       serverKeyMap,
       sortedServerKeyCounts: serverKeyCounts.sort((a, b) => a - b),
+      virtualServerHashes: (server: string) => this.#virtualServerNames(server).map(hash),
+      serversByHash: serverNodes.reduce((result, n) => {
+        result[n.key] = n.value;
+        return result;
+      }, {} as { [hash: number]: string }),
     };
   }
-}
-
-// determines the hashes for a given server
-function virtualServerHashes(server: string) {
-  return VIRTUAL_SERVER_NODES.map((i) => hash(server + i));
 }
 
 const MIN_HASH = 0x00;
@@ -134,7 +161,7 @@ function hash(str: string) {
   return (h ^= h >>> 16) >>> 0;
 }
 
-type HashRange =
+export type HashRange =
   | { type: "partial"; start: number; end: number }
   | { type: "all"; end: number }
   | undefined;
@@ -174,12 +201,4 @@ function getSuccessorWrapping(hash: number, sortedHashes: number[]) {
   return sortedHashes[inc < sortedHashes.length ? inc : 0];
 }
 
-export {
-  MIN_HASH,
-  MAX_HASH,
-  hash,
-  HashRange,
-  virtualServerHashes,
-  getHashRange,
-  getSuccessorWrapping,
-};
+export { MIN_HASH, MAX_HASH, hash, getHashRange, getSuccessorWrapping };

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { getTheta, Circle } from "./math";
 import Arc from "./Arc";
-import { HashRange } from "./CircularHashSpace";
+import { HashRange } from "../ConsistentHashing";
 import ServerNodeTick from "./ServerNodeTick";
 
 export default function HighlightHashRange(props: {

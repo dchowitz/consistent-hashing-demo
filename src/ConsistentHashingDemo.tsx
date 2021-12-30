@@ -11,6 +11,8 @@ import OverallStats from "./OverallStats";
 import { DivSpacer, SpanSpacer, Item } from "./Shared";
 import Legend from "./visualization/Legend";
 
+const VIRTUAL_NODES_COUNT = 1;
+
 export type Action = {
   action: "addServer" | "removeServer";
   server: string;
@@ -18,7 +20,7 @@ export type Action = {
 };
 
 export default function ConsistentHashingDemo() {
-  const csRef = React.useRef(new ConsistentHashing());
+  const csRef = React.useRef(new ConsistentHashing(VIRTUAL_NODES_COUNT));
   const cs = csRef.current;
 
   const [csState, setCsState] = React.useState(emptyConsistentHashingState);
@@ -93,7 +95,7 @@ export default function ConsistentHashingDemo() {
   }
 
   function onReset() {
-    csRef.current = new ConsistentHashing();
+    csRef.current = new ConsistentHashing(VIRTUAL_NODES_COUNT);
     setCsState(csRef.current.inspect());
     setHighlightKey(undefined);
     setHighlightServer(undefined);
@@ -230,8 +232,10 @@ const MemoizedNodeList = React.memo(
   (prev, next) => prev.names === next.names
 );
 
+let nodeCount = 0;
+
 function getNextServerName() {
-  return "s-" + uuid().slice(-6);
+  return "node-" + nodeCount++;
 }
 
 function getNextKeyName() {
