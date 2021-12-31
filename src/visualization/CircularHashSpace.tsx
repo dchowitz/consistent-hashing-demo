@@ -11,7 +11,7 @@ import HighlightHashRange from "./HighlightHashRange";
 import KeyNode from "./KeyNodeCircle";
 import KeyRing from "./KeyRing";
 import { Circle, getCartesianPoint, getCirclePoint, getHash, getTheta } from "./math";
-import ServerNodeTick from "./ServerNodeTick";
+import ServerNodeTick, { Tick } from "./ServerNodeTick";
 
 const MAX_KEY_HASHES_BEFORE_SIMPLIFICATION = 1000;
 
@@ -27,11 +27,12 @@ export default function CircularHashSpace2(props: {
   const showLabels = !!props.showLabels;
   const showArrow = !!props.showArrow;
   const showStartEnd = !!props.showStartEnd;
-  const dim = 400;
+  const width = 400;
+  const height = 450;
   const circle = {
-    x: dim / 2,
-    y: dim / 2,
-    radius: dim / 2 - 10,
+    x: width / 2,
+    y: width / 2 + 50,
+    radius: width / 2 - 10,
   };
 
   const highlightKeyHash = (highlightKey && hash(highlightKey)) || undefined;
@@ -72,7 +73,7 @@ export default function CircularHashSpace2(props: {
       version="1.1"
       height="100%"
       width="100%"
-      viewBox={`0 0 ${dim} ${dim}`}
+      viewBox={`0 0 ${width} ${height}`}
       xmlns="http://www.w3.org/2000/svg"
     >
       <circle
@@ -84,7 +85,7 @@ export default function CircularHashSpace2(props: {
         fill="transparent"
       />
 
-      {/* {showStartEnd && <StartEnd circle={circle}/>} */}
+      {showStartEnd && <StartEnd circle={circle} />}
 
       {hashRanges
         .filter((r) => !!r)
@@ -104,7 +105,13 @@ export default function CircularHashSpace2(props: {
         ))}
 
       {showArrow && highlightKeyHash && targetServerHash && (
-        <Arrow circle={circle} fromHash={highlightKeyHash} toHash={targetServerHash} />
+        <Arrow
+          circle={circle}
+          fromTheta={getTheta(highlightKeyHash)}
+          toTheta={getTheta(targetServerHash)}
+          stroke="red"
+          strokeWidth={3}
+        />
       )}
 
       {(state.keyHashes.length <= MAX_KEY_HASHES_BEFORE_SIMPLIFICATION &&
@@ -169,23 +176,81 @@ function HashLabel(props: { circle: Circle; hash: number; label: string }) {
   );
 }
 
-function Arrow(props: { circle: Circle; fromHash: number; toHash: number }) {
-  const { circle, fromHash, toHash } = props;
-  const p = getCirclePoint(circle, toHash);
-  const head = ["M", 0, 0, "l", -20, -5, "l", 0, 10, "Z"].join(" ");
-  const deg = (180 / Math.PI) * getTheta(toHash) + 90;
+function Arrow(props: {
+  circle: Circle;
+  fromTheta: number;
+  toTheta: number;
+  stroke: string;
+  strokeWidth: number;
+}) {
+  const { circle, fromTheta, toTheta, stroke, strokeWidth } = props;
+  const p = getCartesianPoint(circle, toTheta);
+  const arrowWidth = 2 * strokeWidth - 1;
+  const arrowLength = 4 * arrowWidth;
+  const head = [
+    "M",
+    0,
+    0,
+    "l",
+    -arrowLength,
+    -arrowWidth,
+    "l",
+    0,
+    2 * arrowWidth,
+    "Z",
+  ].join(" ");
+  const deg = (180 / Math.PI) * toTheta + 90;
 
   return (
     <>
       <Arc
         circle={circle}
-        startAngle={getTheta(fromHash)}
-        endAngle={getTheta(toHash)}
-        stroke="red"
-        strokeWidth={3}
+        startAngle={fromTheta}
+        endAngle={toTheta - Math.PI / 90}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
         fill="transparent"
       />
-      <path d={head} fill="red" transform={`translate(${p.x},${p.y}) rotate(${deg})`} />
+      "
+      <path
+        d={head}
+        fill={stroke}
+        transform={`translate(${p.x},${p.y}) rotate(${deg})`}
+      />
+    </>
+  );
+}
+
+function StartEnd(props: { circle: Circle }) {
+  const circle = { ...props.circle, radius: props.circle.radius + 20 };
+  const start = getTheta(0);
+  const { x, y } = getCartesianPoint({ ...circle, radius: circle.radius + 5 }, start);
+
+  return (
+    <>
+      <Arrow
+        circle={circle}
+        fromTheta={start}
+        toTheta={start + Math.PI / 15}
+        stroke="gray"
+        strokeWidth={2}
+      />
+      <Tick
+        circle={circle}
+        theta={start}
+        lengthOutside={3}
+        lengthInside={3}
+        stroke="gray"
+        strokeWidth={2}
+      />
+      <text
+        textAnchor="middle"
+        transform={`translate(${x},${y})`}
+        fontSize="smaller"
+        fill="gray"
+      >
+        0
+      </text>
     </>
   );
 }

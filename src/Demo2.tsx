@@ -41,6 +41,7 @@ export default function Demo2(props: {
           highlightServer={cs.lookupVirtualServer(key)}
           showLabels
           showArrow
+          showStartEnd
         />
       </div>
       <input
