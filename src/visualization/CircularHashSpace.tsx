@@ -13,6 +13,13 @@ import KeyRing from "./KeyRing";
 import { Circle, getCartesianPoint, getCirclePoint, getHash, getTheta } from "./math";
 import ServerNodeTick, { Tick } from "./ServerNodeTick";
 
+export const colors = {
+  hashRing: "#FFFFA0",
+  server: "#FF7698",
+  key: "#00CDFF",
+  arrow: "#00CDFF",
+};
+
 const MAX_KEY_HASHES_BEFORE_SIMPLIFICATION = 1000;
 
 export default function CircularHashSpace2(props: {
@@ -80,7 +87,7 @@ export default function CircularHashSpace2(props: {
         cx={circle.x}
         cy={circle.y}
         r={circle.radius}
-        stroke="lightblue"
+        stroke={colors.hashRing}
         strokeWidth="2"
         fill="transparent"
       />
@@ -90,7 +97,12 @@ export default function CircularHashSpace2(props: {
       {hashRanges
         .filter((r) => !!r)
         .map((r) => (
-          <HighlightHashRange key={r!.end} circle={circle} range={r} color="lightblue" />
+          <HighlightHashRange
+            key={r!.end}
+            circle={circle}
+            range={r}
+            color={colors.hashRing}
+          />
         ))}
 
       {movedRanges
@@ -109,7 +121,7 @@ export default function CircularHashSpace2(props: {
           circle={circle}
           fromTheta={getTheta(highlightKeyHash)}
           toTheta={getTheta(targetServerHash)}
-          stroke="red"
+          stroke={colors.arrow}
           strokeWidth={3}
         />
       )}
@@ -225,14 +237,14 @@ function StartEnd(props: { circle: Circle }) {
   const circle = { ...props.circle, radius: props.circle.radius + 20 };
   const start = getTheta(0);
   const { x, y } = getCartesianPoint({ ...circle, radius: circle.radius + 5 }, start);
-
+  const color = "black";
   return (
     <>
       <Arrow
         circle={circle}
         fromTheta={start}
         toTheta={start + Math.PI / 15}
-        stroke="gray"
+        stroke={color}
         strokeWidth={2}
       />
       <Tick
@@ -240,14 +252,14 @@ function StartEnd(props: { circle: Circle }) {
         theta={start}
         lengthOutside={3}
         lengthInside={3}
-        stroke="gray"
+        stroke={color}
         strokeWidth={2}
       />
       <text
         textAnchor="middle"
         transform={`translate(${x},${y})`}
         fontSize="smaller"
-        fill="gray"
+        fill={color}
       >
         0
       </text>

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { colors } from "./CircularHashSpace";
 import { getTheta, getCartesianPoint, Circle } from "./math";
 
 export default function ServerNodeTick(props: {
@@ -22,7 +23,7 @@ export default function ServerNodeTick(props: {
       theta={getTheta(hash)}
       lengthOutside={highlight ? 10 : 5}
       lengthInside={highlight ? 20 : 5}
-      stroke="red"
+      stroke={colors.server}
       strokeWidth={highlight ? 4 : 3}
     />
   );
