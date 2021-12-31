@@ -5,7 +5,8 @@
     "build": "tsc && vite build",
     "serve": "vite preview",
     "test": "jest",
-    "test-watch": "jest --watchAll"
+    "test-watch": "jest --watchAll",
+    "publish-glitch-demo2": "npm run build && ./scripts/publish-glitch-demo2.sh"
   },
   "dependencies": {
     "react": "^17.0.0",
