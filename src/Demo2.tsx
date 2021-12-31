@@ -11,13 +11,19 @@ export default function Demo2(props: {
   const [csState, setCsState] = React.useState(cs.inspect());
   const [key, setKey] = React.useState("Enter Key Here");
 
+  const apiController = React.useRef(new AbortController());
+
   React.useEffect(() => {
     props.initialNodes.forEach((n) => cs.addServer(n));
     setCsState(cs.inspect());
   }, []);
 
   function fetchRandomKey() {
-    fetch("https://random-word-api.herokuapp.com/word?number=1")
+    apiController.current.abort();
+    apiController.current = new AbortController();
+    const { signal } = apiController.current;
+
+    fetch("https://random-word-api.herokuapp.com/word?number=1", { signal })
       .then((r) => r.json())
       .then((words) => setKey(words[0] || "Fetch Failed"));
   }
