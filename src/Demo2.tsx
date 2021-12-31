@@ -16,18 +16,27 @@ export default function Demo2(props: {
     setCsState(cs.inspect());
   }, []);
 
+  function fetchRandomKey() {
+    fetch("https://random-word-api.herokuapp.com/word?number=1")
+      .then((r) => r.json())
+      .then((words) => setKey(words[0] || "Fetch Failed"));
+  }
+
   return (
     <>
       <h2>Quick Demo - Assigning Keys to Nodes</h2>
-      <input
-        placeholder="Key"
-        type="text"
-        value={key}
-        onChange={(e) => {
-          setKey(e.target.value);
-        }}
-        style={{ width: "25ch" }}
-      />
+      <div>
+        <input
+          placeholder="Key"
+          type="text"
+          value={key}
+          onChange={(e) => {
+            setKey(e.target.value);
+          }}
+          style={{ width: "25ch", marginRight: "1rem" }}
+        />
+        <button onClick={fetchRandomKey}>Random Key</button>
+      </div>
       <CircularHashSpace
         state={csState}
         highlightKey={key}
