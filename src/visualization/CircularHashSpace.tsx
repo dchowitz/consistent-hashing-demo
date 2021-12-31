@@ -35,10 +35,10 @@ export default function CircularHashSpace2(props: {
   const showArrow = !!props.showArrow;
   const showStartEnd = !!props.showStartEnd;
   const width = 400;
-  const height = 450;
+  const height = 430;
   const circle = {
     x: width / 2,
-    y: width / 2 + 50,
+    y: width / 2 + 30,
     radius: width / 2 - 10,
   };
 
@@ -81,6 +81,7 @@ export default function CircularHashSpace2(props: {
       height="100%"
       width="100%"
       viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="xMinYMin meet"
       xmlns="http://www.w3.org/2000/svg"
     >
       <circle
