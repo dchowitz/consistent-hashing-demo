@@ -6,8 +6,9 @@ export default function ServerNodeTick(props: {
   circle: Circle;
   hash: number;
   highlight: boolean;
+  color?: string;
 }) {
-  const { circle, hash, highlight } = props;
+  const { circle, hash, highlight, color } = props;
   const theta = getTheta(hash);
   const p1 = getCartesianPoint(
     { ...circle, radius: circle.radius - (highlight ? 20 : 5) },
@@ -23,7 +24,7 @@ export default function ServerNodeTick(props: {
       theta={getTheta(hash)}
       lengthOutside={highlight ? 10 : 5}
       lengthInside={highlight ? 20 : 5}
-      stroke={colors.server}
+      stroke={color || colors.server}
       strokeWidth={highlight ? 4 : 3}
     />
   );

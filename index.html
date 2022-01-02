@@ -3,12 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Consistent Hashing Demo 2</title>
+    <title>Consistent Hashing Demo 3</title>
     <style>
       :root {
         --color-bg: #69f7be;
         --color-text-main: #000000;
         --color-primary: #ffff00;
+
+        --glitch-blue: #2800ff;
+        --glitch-blue-light: #5a78ff;
+        --glitch-pink: #ff7698;
+        --glitch-pink-light: #fec1ee;
+        --glitch-green: #05f293;
+        --glitch-green-light: #9be7d8;
+        --glitch-yellow: #ffff60;
+        --glitch-purple: #9480ff;
       }
 
       * {
@@ -20,12 +29,9 @@
       }
 
       body {
-        /* width: 657px;
-        height: 408px; */
         font-family: sans-serif;
         background-color: var(--color-bg);
       }
-
       button,
       input {
         font-family: inherit;
@@ -34,13 +40,15 @@
         border: 1px solid #000000;
         border-radius: 4px;
         padding: 0.5rem 1rem;
-        transition: 500ms;
+      }
+
+      button:active {
+        background: var(--glitch-green);
       }
 
       .wrapper {
+        position: relative;
         height: 85vh;
-        /* display: grid;
-        place-items: center; */
         margin: 0 1rem;
       }
     </style>

@@ -6,7 +6,8 @@
     "serve": "vite preview",
     "test": "jest",
     "test-watch": "jest --watchAll",
-    "publish-glitch-demo2": "npm run build && ./scripts/publish-glitch-demo2.sh"
+    "publish-glitch-demo2": "npm run build && ./scripts/publish-glitch-demo2.sh",
+    "publish-glitch-demo3": "npm run build && ./scripts/publish-glitch-demo3.sh"
   },
   "dependencies": {
     "react": "^17.0.0",

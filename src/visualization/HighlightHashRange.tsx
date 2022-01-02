@@ -26,7 +26,7 @@ export default function HighlightHashRange(props: {
           strokeWidth={20}
           fill="transparent"
         />
-        <ServerNodeTick circle={circle} hash={range.end} highlight />
+        <ServerNodeTick circle={circle} hash={range.end} color={color} highlight />
       </>
     );
   }
@@ -42,7 +42,7 @@ export default function HighlightHashRange(props: {
         strokeWidth={20}
         fill="transparent"
       />
-      <ServerNodeTick circle={circle} hash={range.end} highlight />
+      <ServerNodeTick circle={circle} hash={range.end} color={color} highlight />
     </>
   );
 }

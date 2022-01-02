@@ -92,11 +92,41 @@ export default class ConsistentHashing {
     return virtualServer ? this.#virtualServerMap.get(virtualServer) : undefined;
   }
 
+  getServerByVirtualServer(virtualServer: string) {
+    return this.#virtualServerMap.get(virtualServer);
+  }
+
   #virtualServerNames(server: string) {
     return this.VIRTUAL_SERVER_NODES.map((i) => server + "_" + i);
   }
 
-  // TODO - return getHashRange etc.
+  partitionSizesByServer() {
+    let lastHash = 0;
+    const sizes = {} as { [server: string]: number };
+    const nodes = this.#serversSortedByHash.toOrderedArray();
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      const server = this.#virtualServerMap.get(node.value);
+      if (server) {
+        sizes[server] = (sizes[server] || 0) + node.key - lastHash;
+      }
+      lastHash = node.key;
+    }
+
+    // add rest to first node
+    if (nodes.length > 0) {
+      const firstServer = this.#virtualServerMap.get(nodes[0].value);
+      if (firstServer) {
+        sizes[firstServer] += MAX_HASH - nodes[nodes.length - 1].key;
+      }
+    }
+
+    // normalize
+    Object.keys(sizes).forEach((k) => (sizes[k] = sizes[k] / MAX_HASH));
+    return sizes;
+  }
+
+  // vehicel to trigger react re-renders (used as state)
   inspect() {
     const serverNodes = this.#serversSortedByHash.toOrderedArray();
 
@@ -119,6 +149,7 @@ export default class ConsistentHashing {
 
     const serverKeyCounts = Object.values(serverKeyMap).map((keys) => keys.length);
 
+    // todo - we could basically return `this` and expose all info via dedicated methods
     return {
       instance: this,
       servers: [...this.#servers.values()],
