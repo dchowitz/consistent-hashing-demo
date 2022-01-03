@@ -26,12 +26,14 @@ export default function CircularHashSpace2(props: {
   highlightServer?: string;
   highlightKey?: string;
   showLabels?: boolean;
+  showHighlightServerLabels?: boolean;
   showArrow?: boolean;
   showStartEnd?: boolean;
   serverColors?: { [server: string]: string };
 }) {
   const { state, highlightServer, highlightKey } = props;
   const showLabels = !!props.showLabels;
+  const showHighlightServerLabels = !!props.showHighlightServerLabels;
   const showArrow = !!props.showArrow;
   const showStartEnd = !!props.showStartEnd;
   const serverColors = props.serverColors || {};
@@ -48,7 +50,7 @@ export default function CircularHashSpace2(props: {
   const targetServerHash = targetServer && hash(targetServer);
 
   const highlightServerHashes = new Set(
-    (highlightServer && state.serverHashMap[highlightServer]) || []
+    (highlightServer && state.virtualServerHashes(highlightServer)) || []
   );
 
   let hashRanges: HashRange[] = [];
@@ -150,7 +152,6 @@ export default function CircularHashSpace2(props: {
           key={h}
           circle={circle}
           hash={h}
-          highlight={highlightServerHashes.has(h)}
           color={
             serverColors[
               state.instance?.getServerByVirtualServer(state.serversByHash[h]) || ""
@@ -165,6 +166,11 @@ export default function CircularHashSpace2(props: {
 
       {showLabels &&
         state.sortedServerHashes.map((h) => (
+          <HashLabel key={h} circle={circle} hash={h} label={state.serversByHash[h]} />
+        ))}
+
+      {showHighlightServerLabels &&
+        [...highlightServerHashes.values()].map((h) => (
           <HashLabel key={h} circle={circle} hash={h} label={state.serversByHash[h]} />
         ))}
 

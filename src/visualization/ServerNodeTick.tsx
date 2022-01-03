@@ -5,10 +5,11 @@ import { getTheta, getCartesianPoint, Circle } from "./math";
 export default function ServerNodeTick(props: {
   circle: Circle;
   hash: number;
-  highlight: boolean;
+  highlight?: boolean;
   color?: string;
 }) {
-  const { circle, hash, highlight, color } = props;
+  const { circle, hash, color } = props;
+  const highlight = !!props.highlight;
   const theta = getTheta(hash);
   const p1 = getCartesianPoint(
     { ...circle, radius: circle.radius - (highlight ? 20 : 5) },
