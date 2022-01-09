@@ -9,14 +9,20 @@ import Arc from "./Arc";
 import HighlightHashRange from "./HighlightHashRange";
 import KeyNode from "./KeyNodeCircle";
 import KeyRing from "./KeyRing";
-import { Circle, getCartesianPoint, getCirclePoint, getTheta } from "./math";
+import {
+  Circle,
+  getCartesianPoint,
+  getCirclePoint,
+  getTheta,
+  MATH_PI_DOUBLE,
+} from "./math";
 import ServerNodeTick, { Tick } from "./ServerNodeTick";
 
 export const colors = {
   hashRing: "#FFFFA0",
   server: "#FF7698",
-  key: "#00CDFF",
-  arrow: "#00CDFF",
+  key: "black", //"var(--color-bg)", //"black", //"#00CDFF",
+  arrow: "black", //"var(--color-bg)", //"black", //"#00CDFF",
 };
 
 const MAX_KEY_HASHES_BEFORE_SIMPLIFICATION = 1000;
@@ -61,6 +67,14 @@ export default function CircularHashSpace2(props: {
       hashRanges.push(getHashRange(d, sortedHashes));
     });
   }
+
+  console.log(
+    highlightKey,
+    highlightKeyHash,
+    targetServer,
+    targetServerHash,
+    highlightKeyHash! < targetServerHash!
+  );
 
   // let movedRanges: HashRange[] = [];
 
@@ -134,18 +148,14 @@ export default function CircularHashSpace2(props: {
           fromTheta={getTheta(highlightKeyHash)}
           toTheta={getTheta(targetServerHash)}
           stroke={colors.arrow}
-          strokeWidth={3}
+          strokeWidth={2}
         />
       )}
 
-      {(state.keyHashes.length <= MAX_KEY_HASHES_BEFORE_SIMPLIFICATION &&
+      {/* {(state.keyHashes.length <= MAX_KEY_HASHES_BEFORE_SIMPLIFICATION &&
         state.keyHashes.map((h) => (
           <KeyNode key={h} {...getCirclePoint(circle, h)} />
-        ))) || <KeyRing circle={circle} />}
-
-      {highlightKeyHash !== undefined && (
-        <KeyNode {...getCirclePoint(circle, highlightKeyHash)} highlight />
-      )}
+        ))) || <KeyRing circle={circle} />} */}
 
       {state.sortedServerHashes.map((h) => (
         <ServerNodeTick
@@ -232,23 +242,40 @@ function Arrow(props: {
     2 * arrowWidth,
     "Z",
   ].join(" ");
-  const deg = (180 / Math.PI) * toTheta + 90;
+  const arrowDirection = (180 / Math.PI) * toTheta + 90;
+
+  const twoDegrees = Math.PI / 90;
+  const delta =
+    fromTheta <= toTheta ? toTheta - fromTheta : MATH_PI_DOUBLE - fromTheta + toTheta;
+  let endAngle = toTheta;
+
+  // shorten the arc 2 degrees (if it's long enough), so that the arrow tip is visible
+  if (delta > twoDegrees) {
+    endAngle = toTheta - twoDegrees;
+  }
 
   return (
     <>
       <Arc
         circle={circle}
         startAngle={fromTheta}
-        endAngle={toTheta - Math.PI / 90}
+        endAngle={endAngle}
         stroke={stroke}
         strokeWidth={strokeWidth}
         fill="transparent"
       />
-      "
+      <Tick
+        circle={circle}
+        theta={fromTheta}
+        lengthOutside={3}
+        lengthInside={3}
+        stroke={stroke}
+        strokeWidth={2}
+      />
       <path
         d={head}
         fill={stroke}
-        transform={`translate(${p.x},${p.y}) rotate(${deg})`}
+        transform={`translate(${p.x},${p.y}) rotate(${arrowDirection})`}
       />
     </>
   );
@@ -259,20 +286,13 @@ function StartEnd(props: { circle: Circle }) {
   const start = getTheta(0);
   const { x, y } = getCartesianPoint({ ...circle, radius: circle.radius + 5 }, start);
   const color = "black";
+
   return (
     <>
       <Arrow
         circle={circle}
         fromTheta={start}
         toTheta={start + Math.PI / 15}
-        stroke={color}
-        strokeWidth={2}
-      />
-      <Tick
-        circle={circle}
-        theta={start}
-        lengthOutside={3}
-        lengthInside={3}
         stroke={color}
         strokeWidth={2}
       />

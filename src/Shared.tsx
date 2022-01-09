@@ -26,3 +26,9 @@ export const formatPercent = new Intl.NumberFormat(undefined, {
   style: "percent",
   maximumFractionDigits: 1,
 }).format;
+
+export const colors = [
+  "var(--glitch-blue-light)",
+  "var(--glitch-pink)",
+  "var(--color-primary)",
+];

@@ -1,6 +1,7 @@
 import * as React from "react";
 import CircularHashSpace from "./visualization/CircularHashSpace";
 import ConsistentHashing from "./ConsistentHashing";
+import { colors } from "./Shared";
 
 export default function Demo2(props: {
   virtualNodesCount: number;
@@ -12,6 +13,11 @@ export default function Demo2(props: {
   const [key, setKey] = React.useState("Enter Key Here");
 
   const apiController = React.useRef(new AbortController());
+
+  const nodeColors = props.initialNodes.reduce((result, n, i) => {
+    result[n] = colors[i];
+    return result;
+  }, {} as { [node: string]: string });
 
   React.useEffect(() => {
     props.initialNodes.forEach((n) => cs.addServer(n));
@@ -46,7 +52,8 @@ export default function Demo2(props: {
       <CircularHashSpace
         state={csState}
         highlightKey={key}
-        highlightServer={cs.lookupVirtualServer(key)}
+        highlightServer={cs.lookupServer(key)}
+        serverColors={nodeColors}
         showLabels
         showArrow
         showStartEnd

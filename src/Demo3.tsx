@@ -1,10 +1,10 @@
 import * as React from "react";
 import CircularHashSpace from "./visualization/CircularHashSpace";
 import ConsistentHashing, { ConsistentHashingState } from "./ConsistentHashing";
+import { colors } from "./Shared";
 
 const MIN_NODES = 1;
 const MAX_NODES = 99;
-const colors = ["var(--glitch-blue-light)", "var(--glitch-pink)", "var(--glitch-yellow)"];
 
 export default function Demo3(props: { initialNodes: string[] }) {
   const [virtualNodes, setVirtualNodes] = React.useState(1);
