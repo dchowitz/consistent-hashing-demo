@@ -6,6 +6,8 @@ import Demo4 from "./Demo4";
 
 ReactDOM.render(
   <React.StrictMode>
+    <Demo2 initialNodes={["node-11", "node-13", "node-21"]} />
+    <Demo3 initialNodes={["node-11", "node-13", "node-21"]} />
     <Demo4
       initialNodes={[
         "node-11",
@@ -19,8 +21,6 @@ ReactDOM.render(
         "node-46",
       ]}
     />
-    {/* <Demo2 initialNodes={["node-11", "node-13", "node-21"]} /> */}
-    {/* <Demo3 initialNodes={["node-11", "node-13", "node-21"]} /> */}
   </React.StrictMode>,
   document.getElementById("root")
 );
