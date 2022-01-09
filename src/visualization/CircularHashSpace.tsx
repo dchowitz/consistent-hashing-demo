@@ -68,14 +68,6 @@ export default function CircularHashSpace2(props: {
     });
   }
 
-  console.log(
-    highlightKey,
-    highlightKeyHash,
-    targetServer,
-    targetServerHash,
-    highlightKeyHash! < targetServerHash!
-  );
-
   // let movedRanges: HashRange[] = [];
 
   // if (highlightServer && state.serverHashMap[highlightServer] !== undefined) {
@@ -171,7 +163,11 @@ export default function CircularHashSpace2(props: {
       ))}
 
       {showLabels && highlightKeyHash && (
-        <HashLabel circle={circle} hash={highlightKeyHash} label={props.highlightKey!} />
+        <HashLabel
+          circle={circle}
+          hash={highlightKeyHash}
+          label={"KEY: " + props.highlightKey!}
+        />
       )}
 
       {showLabels &&

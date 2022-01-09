@@ -2,17 +2,13 @@ import * as React from "react";
 import CircularHashSpace from "./visualization/CircularHashSpace";
 import ConsistentHashing from "./ConsistentHashing";
 import { colors } from "./Shared";
+import KeyInput from "./KeyInput";
 
-export default function Demo2(props: {
-  virtualNodesCount: number;
-  initialNodes: string[];
-}) {
-  const csRef = React.useRef(new ConsistentHashing(props.virtualNodesCount));
+export default function Demo2(props: { initialNodes: string[] }) {
+  const csRef = React.useRef(new ConsistentHashing(1));
   const cs = csRef.current;
   const [csState, setCsState] = React.useState(cs.inspect());
   const [key, setKey] = React.useState("Enter Key Here");
-
-  const apiController = React.useRef(new AbortController());
 
   const nodeColors = props.initialNodes.reduce((result, n, i) => {
     result[n] = colors[i];
@@ -24,31 +20,10 @@ export default function Demo2(props: {
     setCsState(cs.inspect());
   }, []);
 
-  function fetchRandomKey() {
-    apiController.current.abort();
-    apiController.current = new AbortController();
-    const { signal } = apiController.current;
-
-    fetch("https://random-word-api.herokuapp.com/word?number=1", { signal })
-      .then((r) => r.json())
-      .then((words) => setKey(words[0] || "Fetch Failed"));
-  }
-
   return (
     <>
       <h2>Quick Demo - Assigning Keys to Nodes</h2>
-      <div>
-        <input
-          placeholder="Key"
-          type="text"
-          value={key}
-          onChange={(e) => {
-            setKey(e.target.value);
-          }}
-          style={{ width: "25ch", marginRight: "1rem" }}
-        />
-        <button onClick={fetchRandomKey}>Random Key</button>
-      </div>
+      <KeyInput value={key} onChange={setKey} />
       <CircularHashSpace
         state={csState}
         highlightKey={key}
